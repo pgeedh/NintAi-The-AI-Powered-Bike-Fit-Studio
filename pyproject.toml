@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nintai"
+version = "1.0.0"
+description = "NintAi: Professional AI-Powered Bike Fitting & Biomechanical Motion Studio"
+readme = "README.md"
+authors = [{ name = "Pruthvi", email = "pgeedh@users.noreply.github.com" }]
+license = { text = "MIT" }
+keywords = ["bike-fit", "biomechanics", "cycling", "triathlon", "mediapipe", "yolov11", "gemini-ai", "computer-vision"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "opencv-python>=4.8.0",
+    "mediapipe>=0.10.14",
+    "numpy>=1.24.0",
+    "pandas>=2.0.0",
+    "openpyxl>=3.1.0",
+    "ultralytics>=8.3.0",
+    "fpdf>=1.7.2",
+    "seaborn>=0.12.0",
+    "matplotlib>=3.7.0",
+    "google-generativeai>=0.8.0",
+    "python-dotenv>=1.0.0",
+    "streamlit>=1.30.0",
+    "pillow>=10.0.0",
+    "requests>=2.31.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/pgeedh/NintAi-The-AI-Powered-Bike-Fit-Studio"
+Repository = "https://github.com/pgeedh/NintAi-The-AI-Powered-Bike-Fit-Studio.git"
+
+[project.scripts]
+nintai-studio = "app:main"
+nintai-video = "src.analyze_video:main"
+nintai-image = "src.analyze_image:main"

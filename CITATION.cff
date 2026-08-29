@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use NintAi in your research or project, please cite it as below."
+authors:
+- family-names: "Geedh"
+  given-names: "Pruthvi Omkar"
+title: "NintAi: An AI-Powered Dynamic Biomechanical Bike Fitting Studio"
+version: 1.0.0
+date-released: 2024-08-29
+url: "https://github.com/pgeedh/NintAi-The-AI-Powered-Bike-Fit-Studio"

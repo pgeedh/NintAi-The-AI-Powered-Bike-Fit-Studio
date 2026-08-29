@@ -3,6 +3,9 @@ import cv2
 import math
 
 class OneEuroFilter:
+    """
+    Adaptive 1€ Filter for smooth, low-latency tracking of 2D/3D biomechanical keypoints.
+    """
     def __init__(self, t0, x0, min_cutoff=1.0, beta=0.007, d_cutoff=1.0):
         self.t_prev = t0
         self.x_prev = np.array(x0, dtype=float)
@@ -10,136 +13,191 @@ class OneEuroFilter:
         self.min_cutoff = min_cutoff
         self.beta = beta
         self.d_cutoff = d_cutoff
-        self.alpha = self._alpha(min_cutoff)
 
-    def _alpha(self, cutoff):
+    def _alpha(self, cutoff, dt):
         tau = 1.0 / (2 * np.pi * cutoff)
-        return 1.0 / (1.0 + tau * 30.0)
+        return 1.0 / (1.0 + tau / dt)
 
-    def __call__(self, t, x):
-        t_e = t - self.t_prev
-        a_d = self._alpha(self.d_cutoff)
-        dx = (x - self.x_prev) / t_e if t_e > 0 else np.zeros_like(x)
-        dx_hat = a_d * dx + (1 - a_d) * self.dx_prev
-        cutoff = self.min_cutoff + self.beta * np.abs(dx_hat)
-        a = self._alpha(cutoff)
-        x_hat = a * x + (1 - a) * self.x_prev
+    def filter(self, t, x):
+        dt = t - self.t_prev
+        if dt <= 1e-5:
+            return self.x_prev
+
+        x = np.array(x, dtype=float)
+        dx = (x - self.x_prev) / dt
+        a_d = self._alpha(self.d_cutoff, dt)
+        dx_hat = a_d * dx + (1.0 - a_d) * self.dx_prev
+
+        cutoff = self.min_cutoff + self.beta * np.linalg.norm(dx_hat)
+        a = self._alpha(cutoff, dt)
+        x_hat = a * x + (1.0 - a) * self.x_prev
+
+        self.t_prev = t
         self.x_prev = x_hat
         self.dx_prev = dx_hat
-        self.t_prev = t
         return x_hat
 
+
+class BoneLengthEnforcer:
+    """
+    Kinematic constraint filter ensuring physiological segment lengths
+    (Femur, Tibia, Torso) remain constant across frames.
+    """
+    def __init__(self, tolerance=0.08):
+        self.tolerance = tolerance
+        self.calibrated = False
+        self.bone_lengths = {}
+        self.samples = {'femur': [], 'tibia': [], 'torso': []}
+
+    def calibrate_step(self, landmarks):
+        if 'hip' in landmarks and 'knee' in landmarks:
+            self.samples['femur'].append(np.linalg.norm(np.array(landmarks['knee']) - np.array(landmarks['hip'])))
+        if 'knee' in landmarks and 'ankle' in landmarks:
+            self.samples['tibia'].append(np.linalg.norm(np.array(landmarks['ankle']) - np.array(landmarks['knee'])))
+        if 'hip' in landmarks and 'shoulder' in landmarks:
+            self.samples['torso'].append(np.linalg.norm(np.array(landmarks['shoulder']) - np.array(landmarks['hip'])))
+
+        if len(self.samples['femur']) >= 25:
+            self.bone_lengths['femur'] = np.median(self.samples['femur'])
+            self.bone_lengths['tibia'] = np.median(self.samples['tibia'])
+            self.bone_lengths['torso'] = np.median(self.samples['torso'])
+            self.calibrated = True
+
+    def enforce(self, landmarks):
+        if not self.calibrated or 'hip' not in landmarks or 'knee' not in landmarks or 'ankle' not in landmarks:
+            return landmarks
+
+        hip = np.array(landmarks['hip'], dtype=float)
+        knee = np.array(landmarks['knee'], dtype=float)
+        ankle = np.array(landmarks['ankle'], dtype=float)
+
+        # Enforce Femur
+        vec_fk = knee - hip
+        dist_fk = np.linalg.norm(vec_fk)
+        if dist_fk > 0 and abs(dist_fk - self.bone_lengths['femur']) / self.bone_lengths['femur'] > self.tolerance:
+            knee = hip + (vec_fk / dist_fk) * self.bone_lengths['femur']
+            landmarks['knee'] = knee.tolist()
+
+        # Enforce Tibia
+        vec_ka = ankle - knee
+        dist_ka = np.linalg.norm(vec_ka)
+        if dist_ka > 0 and abs(dist_ka - self.bone_lengths['tibia']) / self.bone_lengths['tibia'] > self.tolerance:
+            ankle = knee + (vec_ka / dist_ka) * self.bone_lengths['tibia']
+            landmarks['ankle'] = ankle.tolist()
+
+        return landmarks
+
+
 def calculate_angle(a, b, c):
-    a, b, c = np.array(a), np.array(b), np.array(c)
+    """
+    Calculates 2D planar angle ABC (vertex at B) in degrees.
+    """
+    a = np.array(a, dtype=float)
+    b = np.array(b, dtype=float)
+    c = np.array(c, dtype=float)
+
     radians = np.arctan2(c[1] - b[1], c[0] - b[0]) - np.arctan2(a[1] - b[1], a[0] - b[0])
     angle = np.abs(radians * 180.0 / np.pi)
-    if angle > 180.0: angle = 360 - angle
+
+    if angle > 180.0:
+        angle = 360.0 - angle
+
     return angle
 
-def calculate_angle_horizontal(a, b):
-    v = np.array(b) - np.array(a)
-    return np.abs(np.degrees(np.arctan2(v[1], v[0])))
 
-def draw_angle_arc(image, p1, p2, p3, angle, color=(0, 255, 255), radius=30):
-    if p1 == (0,0) or p2 == (0,0) or p3 == (0,0): return
-    v1 = np.array(p1) - np.array(p2)
-    v2 = np.array(p3) - np.array(p2)
-    ang1 = np.degrees(np.arctan2(v1[1], v1[0]))
-    ang2 = np.degrees(np.arctan2(v2[1], v2[0]))
-    if ang1 < 0: ang1 += 360
-    if ang2 < 0: ang2 += 360
-    diff = ang2 - ang1
-    if diff < 0: diff += 360
-    if diff > 180:
-        start, end = ang2, ang1
-    else:
-        start, end = ang1, ang2
-    cv2.ellipse(image, p2, (radius, radius), 0, start, end, color, 2, cv2.LINE_AA)
-    text_x = int(p2[0] + radius * 1.5 * np.cos(np.radians((start+end)/2)))
-    text_y = int(p2[1] + radius * 1.5 * np.sin(np.radians((start+end)/2)))
-    cv2.putText(image, f"{int(angle)}", (text_x-10, text_y+5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1, cv2.LINE_AA)
+def calculate_angle_3d(a, b, c):
+    """
+    Calculates true 3D spatial angle ABC (vertex at B) in degrees using 3D metric coordinates.
+    Eliminates camera perspective distortion.
+    """
+    a = np.array(a, dtype=float)
+    b = np.array(b, dtype=float)
+    c = np.array(c, dtype=float)
 
-def detect_side(lm_dict):
-    nose = lm_dict.get('nose')
-    l_ear = lm_dict.get('left_ear')
-    r_ear = lm_dict.get('right_ear')
-    
-    if nose is not None and l_ear is not None:
-        if nose[0] < l_ear[0]: return 'left'
-        else: return 'right'
-    if nose is not None and r_ear is not None:
-        if nose[0] < r_ear[0]: return 'left'
-        else: return 'right'
-        
-    l_hip = lm_dict.get('left_hip')
-    l_knee = lm_dict.get('left_knee')
-    if l_hip is not None and l_knee is not None:
-        if l_knee[0] < l_hip[0]: return 'left'
-        else: return 'right'
-        
-    return 'left'
+    ba = a - b
+    bc = c - b
 
-def get_primary_landmarks(lm_dict, facing_side):
-    left_keys = ['left_shoulder', 'left_hip', 'left_knee', 'left_ankle', 'left_heel', 'left_toe']
-    right_keys = ['right_shoulder', 'right_hip', 'right_knee', 'right_ankle', 'right_heel', 'right_toe']
-    
-    l_count = sum(1 for k in left_keys if k in lm_dict)
-    r_count = sum(1 for k in right_keys if k in lm_dict)
-    
-    prefix = 'left_' if l_count >= r_count else 'right_'
-    
-    unified = {}
-    for k, v in lm_dict.items():
-        if k.startswith(prefix):
-            unified[k.replace(prefix, '')] = v
-        unified[k] = v 
-    unified['side'] = prefix.replace('_', '')
-    return unified
+    norm_ba = np.linalg.norm(ba)
+    norm_bc = np.linalg.norm(bc)
+    if norm_ba < 1e-6 or norm_bc < 1e-6:
+        return 0.0
 
-def analyze_posture(lm):
-    angles = {}
-    def valid(pt): return pt is not None and not (pt[0] == 0 and pt[1] == 0)
+    cosine_angle = np.dot(ba, bc) / (norm_ba * norm_bc)
+    cosine_angle = np.clip(cosine_angle, -1.0, 1.0)
+    return float(np.degrees(np.arccos(cosine_angle)))
 
-    if valid(lm.get('hip')) and valid(lm.get('knee')) and valid(lm.get('ankle')):
-        angles['knee'] = calculate_angle(lm['hip'], lm['knee'], lm['ankle'])
-    else: angles['knee'] = 0
 
-    if valid(lm.get('shoulder')) and valid(lm.get('hip')) and valid(lm.get('knee')):
-        angles['hip'] = calculate_angle(lm['shoulder'], lm['hip'], lm['knee'])
-    else: angles['hip'] = 0
-    
-    if valid(lm.get('shoulder')) and valid(lm.get('hip')):
-        angles['back'] = calculate_angle_horizontal(lm['hip'], lm['shoulder'])
-    else: angles['back'] = 0
-    
-    if valid(lm.get('elbow')) and valid(lm.get('shoulder')) and valid(lm.get('hip')):
-        angles['arm_torso'] = calculate_angle(lm['elbow'], lm['shoulder'], lm['hip'])
-    else: angles['arm_torso'] = 0
-    
-    ear_pt = None
-    if 'ear' in lm: ear_pt = lm['ear']
-    elif 'side' in lm:
-        ear_pt = lm.get(f"{lm['side']}_ear")
-        
-    if valid(ear_pt) and valid(lm.get('shoulder')) and valid(lm.get('hip')):
-        angles['neck'] = calculate_angle(lm['hip'], lm['shoulder'], ear_pt)
-    else: angles['neck'] = 0
-    
-    if valid(lm.get('elbow')) and valid(lm.get('wrist')):
-        angles['wrist_tilt'] = calculate_angle_horizontal(lm['elbow'], lm['wrist'])
-    else: angles['wrist_tilt'] = 0
-    
-    # Real Foot Angle (Heel-Toe vs Horizontal)
-    # 0 deg = flat. + deg = toe up?
-    if valid(lm.get('heel')) and valid(lm.get('toe')):
-        angles['foot_angle'] = calculate_angle_horizontal(lm['heel'], lm['toe'])
-    else: angles['foot_angle'] = 0
+def calculate_torso_angle(shoulder, hip):
+    """
+    Calculates the back/torso angle relative to the horizontal plane.
+    """
+    dx = shoulder[0] - hip[0]
+    dy = hip[1] - shoulder[1]  # Inverted Y for image coordinates
+    return abs(math.degrees(math.atan2(dy, abs(dx))))
 
-    return angles
 
-def get_feedback(knee_angle, arm_avg):
-    feedback_lines = []
-    if knee_angle > 0:
-        if knee_angle < 140: feedback_lines.append(f"Knee Extension low ({knee_angle:.0f}°). Raise Saddle.")
-        elif knee_angle > 150: feedback_lines.append(f"Knee Extension high ({knee_angle:.0f}°). Lower Saddle.")
-    return feedback_lines, {}, {}
+def calculate_ankling_angle(knee, ankle, heel, toe):
+    """
+    Calculates true dynamic ankling angle: angle between the tibia (knee->ankle)
+    and the foot line (heel->toe).
+    Optimal at BDC is ~90-100 deg (neutral to slight plantarflexion).
+    """
+    tibia_vec = np.array(ankle) - np.array(knee)
+    foot_vec = np.array(toe) - np.array(heel)
+    
+    norm_t = np.linalg.norm(tibia_vec)
+    norm_f = np.linalg.norm(foot_vec)
+    if norm_t < 1e-6 or norm_f < 1e-6:
+        return 90.0
+
+    cosine = np.dot(tibia_vec, foot_vec) / (norm_t * norm_f)
+    cosine = np.clip(cosine, -1.0, 1.0)
+    return float(np.degrees(np.arccos(cosine)))
+
+
+def calculate_kops_offset(knee, ankle_at_3oclock, pixel_to_cm_scale=1.0):
+    """
+    Knee Over Pedal Spindle (KOPS) offset at 3 o'clock power phase.
+    Positive: Knee forward of spindle (anterior)
+    Negative: Knee behind spindle (posterior)
+    Target: 0 +/- 1.0 cm
+    """
+    horizontal_offset_px = knee[0] - ankle_at_3oclock[0]
+    return horizontal_offset_px * pixel_to_cm_scale
+
+
+# Target angle benchmarks across cycling disciplines
+FIT_TARGETS = {
+    "ROAD": {
+        "knee_ext_max": (140, 150),   # BDC Extension
+        "knee_flex_min": (68, 75),    # TDC Flexion
+        "hip_closed_min": (45, 55),   # Closed Hip Angle
+        "back_avg": (40, 50),         # Torso Incline
+        "arm_avg": (85, 95),          # Shoulder/Arm angle
+        "ankling_bdc": (90, 105),     # Ankle angle at BDC
+    },
+    "TRIATHLON_TT": {
+        "knee_ext_max": (145, 153),   # Slightly more open for aero power
+        "knee_flex_min": (65, 72),
+        "hip_closed_min": (40, 48),   # Aggressive hip angle
+        "back_avg": (15, 25),         # Aero horizontal torso
+        "arm_avg": (80, 90),          # 90 deg aero bar support
+        "ankling_bdc": (95, 110),
+    },
+    "GRAVEL_ENDURANCE": {
+        "knee_ext_max": (138, 148),
+        "knee_flex_min": (70, 78),
+        "hip_closed_min": (50, 60),
+        "back_avg": (45, 55),
+        "arm_avg": (85, 95),
+        "ankling_bdc": (90, 100),
+    },
+    "MTB": {
+        "knee_ext_max": (135, 145),
+        "knee_flex_min": (72, 80),
+        "hip_closed_min": (55, 65),
+        "back_avg": (50, 60),
+        "arm_avg": (90, 100),
+        "ankling_bdc": (85, 95),
+    }
+}

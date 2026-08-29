@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  nintai-studio:
+    build: .
+    container_name: nintai-studio
+    ports:
+      - "8501:8501"
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    volumes:
+      - ./output:/app/output
+    restart: unless-stopped
