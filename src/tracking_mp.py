@@ -7,19 +7,17 @@ import time
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
-# Default model path
 DEFAULT_MODEL_PATH = os.path.join(os.path.dirname(__file__), 'models', 'pose_landmarker_heavy.task')
 
 class PoseDetectorMP:
-    def __init__(self, model_path=None, running_mode=vision.RunningMode.VIDEO):
+    def __init__(self, model_path=None, running_mode=vision.RunningMode.VIDEO, **kwargs):
         """
         Initializes MediaPipe Pose Landmarker (Heavy) Tasks API.
-        Supports both VIDEO and IMAGE modes, with automatic fallback and 3D world landmark extraction.
+        Supports both VIDEO and IMAGE modes with automatic model download and 3D world landmark extraction.
         """
         if model_path is None:
             model_path = DEFAULT_MODEL_PATH
 
-        # Ensure model exists or download automatically
         if not os.path.exists(model_path):
             os.makedirs(os.path.dirname(model_path), exist_ok=True)
             print(f"📥 Model not found at {model_path}. Auto-downloading...")
@@ -45,8 +43,7 @@ class PoseDetectorMP:
 
     def predict(self, image, timestamp_ms=None):
         """
-        Runs MP Pose. Image must be BGR (standard OpenCV format).
-        Returns detection_result containing pose_landmarks and pose_world_landmarks.
+        Runs MP Pose. Image must be BGR (OpenCV format).
         """
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=image_rgb)
@@ -87,14 +84,13 @@ class PoseDetectorMP:
             if idx < len(landmarks):
                 lm = landmarks[idx]
                 if lm.visibility > 0.4:
-                    lm_dict[name] = [lm.x * w, lm.y * h]
+                    lm_dict[name] = [float(lm.x * w), float(lm.y * h)]
 
         return lm_dict
 
     def get_world_landmarks_dict(self, results):
         """
-        Extracts 3D World Landmarks (x, y, z in real-world metric meters, origin at hip center).
-        Crucial for calculating parallax-free 3D biomechanical joint angles!
+        Extracts 3D World Landmarks in meters.
         """
         if not results or not results.pose_world_landmarks or len(results.pose_world_landmarks) == 0:
             return {}

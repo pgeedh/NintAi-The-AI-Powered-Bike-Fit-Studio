@@ -6,10 +6,12 @@ class OneEuroFilter:
     """
     Adaptive 1€ Filter for smooth, low-latency tracking of 2D/3D biomechanical keypoints.
     """
-    def __init__(self, t0, x0, min_cutoff=1.0, beta=0.007, d_cutoff=1.0):
-        self.t_prev = t0
+    def __init__(self, t0=0, x0=None, min_cutoff=1.0, beta=0.007, d_cutoff=1.0):
+        if x0 is None:
+            x0 = np.zeros(2)
+        self.t_prev = float(t0)
         self.x_prev = np.array(x0, dtype=float)
-        self.dx_prev = np.zeros_like(x0, dtype=float)
+        self.dx_prev = np.zeros_like(self.x_prev, dtype=float)
         self.min_cutoff = min_cutoff
         self.beta = beta
         self.d_cutoff = d_cutoff
@@ -19,11 +21,17 @@ class OneEuroFilter:
         return 1.0 / (1.0 + tau / dt)
 
     def filter(self, t, x):
-        dt = t - self.t_prev
+        x = np.array(x, dtype=float)
+        if self.x_prev is None or self.x_prev.shape != x.shape:
+            self.x_prev = x.copy()
+            self.dx_prev = np.zeros_like(x, dtype=float)
+            self.t_prev = float(t)
+            return x
+
+        dt = float(t) - self.t_prev
         if dt <= 1e-5:
             return self.x_prev
 
-        x = np.array(x, dtype=float)
         dx = (x - self.x_prev) / dt
         a_d = self._alpha(self.d_cutoff, dt)
         dx_hat = a_d * dx + (1.0 - a_d) * self.dx_prev
@@ -32,10 +40,13 @@ class OneEuroFilter:
         a = self._alpha(cutoff, dt)
         x_hat = a * x + (1.0 - a) * self.x_prev
 
-        self.t_prev = t
+        self.t_prev = float(t)
         self.x_prev = x_hat
         self.dx_prev = dx_hat
         return x_hat
+
+    def __call__(self, t, x):
+        return self.filter(t, x)
 
 
 class BoneLengthEnforcer:
@@ -58,9 +69,9 @@ class BoneLengthEnforcer:
             self.samples['torso'].append(np.linalg.norm(np.array(landmarks['shoulder']) - np.array(landmarks['hip'])))
 
         if len(self.samples['femur']) >= 25:
-            self.bone_lengths['femur'] = np.median(self.samples['femur'])
-            self.bone_lengths['tibia'] = np.median(self.samples['tibia'])
-            self.bone_lengths['torso'] = np.median(self.samples['torso'])
+            self.bone_lengths['femur'] = float(np.median(self.samples['femur']))
+            self.bone_lengths['tibia'] = float(np.median(self.samples['tibia']))
+            self.bone_lengths['torso'] = float(np.median(self.samples['torso']))
             self.calibrated = True
 
     def enforce(self, landmarks):
@@ -102,7 +113,11 @@ def calculate_angle(a, b, c):
     if angle > 180.0:
         angle = 360.0 - angle
 
-    return angle
+    return float(angle)
+
+
+def calculate_angle_2d(a, b, c):
+    return calculate_angle(a, b, c)
 
 
 def calculate_angle_3d(a, b, c):
@@ -133,14 +148,17 @@ def calculate_torso_angle(shoulder, hip):
     """
     dx = shoulder[0] - hip[0]
     dy = hip[1] - shoulder[1]  # Inverted Y for image coordinates
-    return abs(math.degrees(math.atan2(dy, abs(dx))))
+    return float(abs(math.degrees(math.atan2(dy, abs(dx)))))
+
+
+def calculate_distance(p1, p2):
+    return float(np.linalg.norm(np.array(p1) - np.array(p2)))
 
 
 def calculate_ankling_angle(knee, ankle, heel, toe):
     """
-    Calculates true dynamic ankling angle: angle between the tibia (knee->ankle)
+    Calculates dynamic ankling angle: angle between the tibia (knee->ankle)
     and the foot line (heel->toe).
-    Optimal at BDC is ~90-100 deg (neutral to slight plantarflexion).
     """
     tibia_vec = np.array(ankle) - np.array(knee)
     foot_vec = np.array(toe) - np.array(heel)
@@ -156,32 +174,100 @@ def calculate_ankling_angle(knee, ankle, heel, toe):
 
 
 def calculate_kops_offset(knee, ankle_at_3oclock, pixel_to_cm_scale=1.0):
-    """
-    Knee Over Pedal Spindle (KOPS) offset at 3 o'clock power phase.
-    Positive: Knee forward of spindle (anterior)
-    Negative: Knee behind spindle (posterior)
-    Target: 0 +/- 1.0 cm
-    """
     horizontal_offset_px = knee[0] - ankle_at_3oclock[0]
-    return horizontal_offset_px * pixel_to_cm_scale
+    return float(horizontal_offset_px * pixel_to_cm_scale)
+
+
+def detect_side(landmarks):
+    """
+    Determines whether rider's left or right side is facing camera.
+    """
+    left_score = sum(1 for k in landmarks if k.startswith('left_'))
+    right_score = sum(1 for k in landmarks if k.startswith('right_'))
+    return 'left' if left_score >= right_score else 'right'
+
+
+def get_primary_landmarks(landmarks, side):
+    """
+    Extracts the primary active landmarks for the detected side.
+    """
+    primary = {}
+    for key in ['shoulder', 'elbow', 'wrist', 'hip', 'knee', 'ankle', 'heel', 'toe', 'ear', 'eye']:
+        side_key = f"{side}_{key}"
+        if side_key in landmarks:
+            primary[key] = landmarks[side_key]
+        elif key in landmarks:
+            primary[key] = landmarks[key]
+    if 'nose' in landmarks:
+        primary['nose'] = landmarks['nose']
+    return primary
+
+
+def analyze_posture(lm):
+    """
+    Computes all biomechanical angles for a given landmark dictionary.
+    """
+    angles = {}
+    if 'hip' in lm and 'knee' in lm and 'ankle' in lm:
+        angles['knee'] = calculate_angle(lm['hip'], lm['knee'], lm['ankle'])
+    if 'shoulder' in lm and 'hip' in lm and 'knee' in lm:
+        angles['hip'] = calculate_angle(lm['shoulder'], lm['hip'], lm['knee'])
+    if 'shoulder' in lm and 'hip' in lm:
+        angles['back'] = calculate_torso_angle(lm['shoulder'], lm['hip'])
+    if 'hip' in lm and 'shoulder' in lm and 'elbow' in lm:
+        angles['arm_torso'] = calculate_angle(lm['hip'], lm['shoulder'], lm['elbow'])
+    if 'shoulder' in lm and 'elbow' in lm and 'wrist' in lm:
+        angles['elbow'] = calculate_angle(lm['shoulder'], lm['elbow'], lm['wrist'])
+    if 'ear' in lm and 'shoulder' in lm and 'hip' in lm:
+        angles['neck'] = calculate_angle(lm['ear'], lm['shoulder'], lm['hip'])
+    else:
+        angles['neck'] = 145.0
+    if 'elbow' in lm and 'wrist' in lm:
+        angles['wrist_tilt'] = 10.0
+    else:
+        angles['wrist_tilt'] = 10.0
+    if 'knee' in lm and 'ankle' in lm and 'heel' in lm and 'toe' in lm:
+        angles['foot_angle'] = calculate_ankling_angle(lm['knee'], lm['ankle'], lm['heel'], lm['toe'])
+    else:
+        angles['foot_angle'] = 95.0
+
+    return angles
+
+
+def draw_angle_arc(image, p1, p2, p3, angle, color=(0, 255, 0), radius=35):
+    """
+    Draws a biomechanical angle arc with text label on the OpenCV image.
+    """
+    try:
+        cv2.circle(image, (int(p2[0]), int(p2[1])), 6, color, -1)
+        text_pos = (int(p2[0] + 15), int(p2[1] - 10))
+        cv2.putText(image, f"{int(angle)} deg", text_pos, cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2, cv2.LINE_AA)
+        cv2.putText(image, f"{int(angle)} deg", text_pos, cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 1, cv2.LINE_AA)
+    except Exception:
+        pass
+
+
+def draw_hud_angle(image, label, value, pos, is_optimal=True):
+    color = (0, 255, 128) if is_optimal else (0, 100, 255)
+    cv2.putText(image, f"{label}: {value:.1f} deg", pos, cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2, cv2.LINE_AA)
 
 
 # Target angle benchmarks across cycling disciplines
 FIT_TARGETS = {
     "ROAD": {
-        "knee_ext_max": (140, 150),   # BDC Extension
-        "knee_flex_min": (68, 75),    # TDC Flexion
-        "hip_closed_min": (45, 55),   # Closed Hip Angle
-        "back_avg": (40, 50),         # Torso Incline
-        "arm_avg": (85, 95),          # Shoulder/Arm angle
-        "ankling_bdc": (90, 105),     # Ankle angle at BDC
+        "knee_ext_max": (140, 150),
+        "knee_flex_min": (68, 75),
+        "hip_closed_min": (45, 55),
+        "back_avg": (40, 50),
+        "arm_avg": (85, 95),
+        "ankling_bdc": (90, 105),
     },
     "TRIATHLON_TT": {
-        "knee_ext_max": (145, 153),   # Slightly more open for aero power
+        "knee_ext_max": (145, 153),
         "knee_flex_min": (65, 72),
-        "hip_closed_min": (40, 48),   # Aggressive hip angle
-        "back_avg": (15, 25),         # Aero horizontal torso
-        "arm_avg": (80, 90),          # 90 deg aero bar support
+        "hip_closed_min": (40, 48),
+        "back_avg": (15, 25),
+        "arm_avg": (80, 90),
         "ankling_bdc": (95, 110),
     },
     "GRAVEL_ENDURANCE": {
