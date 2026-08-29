@@ -1,229 +1,152 @@
-# 🚴 NintAi: The AI-Powered Bike Fit Studio
+# NintAi: The Open-Source Biomechanical Bike Fit & Kinematics Studio
 
-<p align="center">
-  <img src="https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge" alt="License">
-  <img src="https://img.shields.io/badge/MediaPipe-BlazePose%20Heavy-FF6F00?style=for-the-badge&logo=google&logoColor=white" alt="MediaPipe">
-  <img src="https://img.shields.io/badge/YOLO-v11%20Pose-00FFFF?style=for-the-badge" alt="YOLOv11">
-  <img src="https://img.shields.io/badge/AI%20Coach-Google%20Gemini-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Gemini">
-  <img src="https://img.shields.io/badge/Streamlit-Web%20Studio-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" alt="Streamlit">
-  <a href="https://colab.research.google.com/github/pgeedh/NintAi-The-AI-Powered-Bike-Fit-Studio/blob/main/notebooks/NintAi_Google_Colab_Demo.ipynb">
-    <img src="https://img.shields.io/badge/Colab-Run%20Demo-F9AB00?style=for-the-badge&logo=googlecolab&logoColor=white" alt="Google Colab">
-  </a>
-</p>
+[![License: MIT](https://img.shields.io/badge/License-MIT-334155.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+[![Pose Tracking](https://img.shields.io/badge/Pose%20Engine-33--Landmark%20BlazePose%20Heavy-0284c7.svg?style=flat-square)](https://developers.google.com/mediapipe)
+[![AI Diagnostics](https://img.shields.io/badge/Diagnostic%20Engine-Claude%20%7C%20Gemini%20%7C%20Offline-475569.svg?style=flat-square)](https://claude.ai/)
+[![Interface](https://img.shields.io/badge/Studio%20UI-Streamlit-0f172a.svg?style=flat-square)](https://streamlit.io/)
+[![Colab Demo](https://img.shields.io/badge/Cloud%20Demo-Google%20Colab-d97706.svg?style=flat-square)](https://colab.research.google.com/github/pgeedh/NintAi-The-AI-Powered-Bike-Fit-Studio/blob/main/notebooks/NintAi_Google_Colab_Demo.ipynb)
 
-<h3 align="center">
-  Transform your laptop into an elite, clinical-grade 3D biomechanical bike fitting laboratory.
-</h3>
-
-<p align="center">
-  <i>Dynamic Motion Capture • 33 Anatomical Keypoints • 4-Phase Stroke Decomposition • Google Gemini Biomechanical Coaching • Automated PDF Clinical Reports</i>
-</p>
+A high-precision, open-source dynamic motion capture suite and clinical bike fitting platform. Operates on standard 2D video footage using 33-point sub-millimeter computer vision kinematics, adaptive 1€ signal filtering, and multi-provider AI diagnostic consultations (Anthropic Claude, Google Gemini, and 100% Offline Rule-Based Biomechanical Engine).
 
 ---
 
-## 🎬 Live Tracking & Studio Demo
+## The Human Story: Why Bike Fit Matters
 
-<p align="center">
-  <!-- Place your demo GIF in assets/examples/images/demo_tracking.gif -->
-  <img src="assets/examples/images/demo_tracking.gif" width="850px" alt="NintAi Real-Time Kinematic Tracking" style="border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.5);">
-</p>
+Cycling is a sport of brutal, continuous repetition. At a standard cadence of 90 RPM, your legs complete **5,400 pedal revolutions every single hour**. Over a typical 50-mile weekend ride, that exceeds 16,000 continuous joint cycles.
 
-<p align="center">
-  <sub>Real-time BlazePose Heavy skeletal tracking • Jitter-free 1€ dynamic filtering • True heel/toe ankling geometry</sub>
-</p>
+When your contact points are misaligned by as little as **4 to 6 millimeters**, that tiny geometric error compounds into 16,000 micro-traumas. The patellar tendon gets crushed against the femoral groove (saddle too low), the biceps femoris is repeatedly over-stretched at the bottom of the stroke (saddle too high), or the lumbar spine flexes into severe kyphosis to compensate for an excessively long reach.
 
----
+### The Mechanic & The Car Analogy
 
-## 💡 Why NintAi? (Comparison with Commercial Fit Systems)
+> **Taking your bike to an experienced, certified professional bike fitter is like taking a car to a certified master mechanic.**
 
-| Capability | 🏢 **Retül 3D Fit** | 📱 **MyVeloFit** | 🚴 **NintAi (Open Source)** |
-| :--- | :---: | :---: | :---: |
-| **Cost** | **$350 – $500** / session | **$75 – $150** / year | **100% Free & Open Source** |
-| **Hardware Required** | $15,000 Vantage 3D rig | Smartphone / Web | **Any Webcam or Phone Video** |
-| **Keypoint Density** | 8 active LED markers | 17 standard 2D points | **33 High-Fidelity 3D Landmarks** |
-| **Foot / Ankling Kinematics** | ✅ Yes | ❌ Virtual Estimate | **✅ True Heel & Toe Tracking** |
-| **Kinematic Filtering** | Proprietary Hardware | Basic smoothing | **Adaptive 1€ Filter + Bone Invariance** |
-| **AI Biomechanical Insights** | Human Fitter only | Template text | **🧠 Google Gemini 2.0 / 3 AI Coach** |
-| **Privacy & Local Execution** | In-studio only | Cloud server upload | **🔒 100% Offline / Local Execution** |
+A master fitter in a clinical studio evaluates your physical mobility off the bike, checks for leg-length discrepancies, measures pelvic tilt, and applies custom footbed orthotics. **A certified in-person professional fit is the gold standard, and we wholeheartedly recommend getting a professional fit done.**
+
+However, commercial in-studio fits typically cost **$350 to $500+ per session**, making regular checkups, saddle swaps, or seasonal adjustments financially inaccessible for millions of cyclists worldwide.
+
+Just like a passionate car enthusiast uses an OBD-II diagnostic scanner in their garage to analyze engine telemetry, monitor fuel trims, and tune their own suspension—**if you understand the underlying principles, you can dial in your fit too**.
+
+**NintAi is built to be your open-source diagnostic telemetry suite.** It gives you the dynamic motion capture, sub-millimeter angle tracking, 4-phase stroke decomposition, and structured action plans to iterate quickly at home for free. You can use it as a foundation to refine your position, or as a diagnostic baseline before visiting a professional fitter.
 
 ---
 
-## 🌟 Core Features
+## Biomechanical Thesis & Literature
 
-- **⚡ 33-Keypoint BlazePose Heavy Engine:** Tracks full body kinematics at 30+ FPS, including full heel and toe geometry for accurate pedal spindle tracking.
-- **🔄 Harmonic 4-Phase Pedal Breakdown:** Automatically decomposes dynamic pedaling cycles into:
-  1. **Top Dead Center (TDC / 12 o'clock):** Minimum knee flexion & closed hip compression.
-  2. **Power Phase (3 o'clock):** Peak torque delivery & KOPS (Knee Over Pedal Spindle) alignment.
-  3. **Bottom Dead Center (BDC / 6 o'clock):** Holmes method knee extension extrema ($140^\circ - 150^\circ$).
-  4. **Recovery Phase (9 o'clock):** Upstroke ankle lift and pelvic stability.
-- **🤖 Gemini AI Biomechanical Coach:** Translates joint angle deviations into millimeter saddle height, fore-aft, and handlebar stack/reach adjustments.
-- **📄 Quad-View Clinical PDF Generator:** Exports publication-quality fitting dossiers with annotated stills, radar charts, and diagnostic scorecards.
-- **🖥️ Interactive Web Studio (`app.py`):** Zero-terminal Streamlit web application with real-time angle gauges, video scrubber, and live report generation.
-- **📐 Interactive Bike Geometry Calibration:** Measure frame Stack, Reach, and Saddle Height directly from photos with 1-click scale calibration.
+The kinematic models and angular thresholds implemented in NintAi are grounded in established clinical cycling biomechanics literature:
+
+1. **Holmes Knee Angle Method (1994):** Evaluates knee flexion/extension at Bottom Dead Center (BDC 6 o'clock). Recommends an included knee angle of **140°–150°** (equivalent to 30°–40° flexion from full extension) to minimize patellofemoral compressive force while preventing hamstring strain.
+2. **Pruitt Dynamic Flexion Bounds:** Evaluates maximum knee flexion at Top Dead Center (TDC 12 o'clock), enforcing a minimum of **68°–75°** to avoid acute patellar shear stress and hip impingement.
+3. **Closed Hip Angle & Diaphragmatic Clearance:** Enforces a minimum hip angle of **45°–55°** (Road) / **40°–48°** (TT) at TDC to ensure unobstructed diaphragmatic breathing and preserve power output.
+4. **Knee Over Pedal Spindle (KOPS):** Plumb-line spatial tracking at 3 o'clock power phase to balance quadriceps vs gluteal recruitment.
+5. **Dynamic Ankling Dynamics:** Evaluates ankle plantarflexion vs dorsiflexion at BDC (**90°–105°**) to detect compensatory toe-pointing caused by excessive saddle height.
 
 ---
 
-## 📊 Biomechanical Reference Ranges
+## Comparison Matrix
 
-NintAi supports custom angle target profiles across all cycling disciplines:
+| Parameter | Retül 3D Vantage | MyVeloFit | Bike Fast Fit | NintAi Kinematics Suite |
+| :--- | :---: | :---: | :---: | :---: |
+| **Licensing** | Commercial ($350+/session) | Subscription ($75–$150/yr) | iOS App ($4.99/mo) | **100% Free & Open Source (MIT)** |
+| **Tracking Density** | 8 LED active markers | 17 standard 2D keypoints | 8 manual/auto points | **33 Anatomical 3D Landmarks** |
+| **Foot Kinematics** | Physical Wand | Virtual Approximation | 2D Foot Angle | **True Heel & Toe Vector Tracking** |
+| **Temporal Filtering** | Hardware Filter | Moving Average | Frame Interpolation | **Adaptive 1€ Filter + Bone Invariance** |
+| **Diagnostic Engine** | In-Person Technician | Template AI Coach | Manual Angle Protractor | **Claude 3.7/3.5 + Gemini + Offline Engine** |
+| **Data Privacy** | In-Studio Only | Cloud Server Upload | Local Device | **100% Local / Offline Processing** |
+
+---
+
+## Core Capabilities
+
+- **33-Keypoint BlazePose Heavy Tracker:** High-frequency skeletal tracking including heel, toe, ankle, knee, hip, shoulder, elbow, wrist, and neck coordinates.
+- **Harmonic 4-Phase Stroke Decomposition:** Automatically segments pedaling cycles into Top Dead Center (TDC 12h), Peak Power Delivery (3h), Bottom Dead Center (BDC 6h), and Kinetic Profile.
+- **Physiological Bone Invariance:** Enforces rigid segment constraints along the femur, tibia, and torso axes to eliminate perspective jitter.
+- **Multi-Provider AI Diagnostic Engine:**
+  - **Anthropic Claude (3.7 / 3.5 Sonnet):** Deep physiological reasoning with exact millimeter prescriptions.
+  - **Google Gemini (2.0 Flash / 1.5 Pro):** Rapid multimodal diagnostic consultations.
+  - **Offline Biomechanical Engine:** 100% local, zero-API-key deterministic clinical evaluation.
+- **Dossier Generation:** Compiles multi-page PDF reports with annotated high-resolution stills, metric tables, and clinical action plans.
+
+---
+
+## Biomechanical Reference Standards
 
 ```
-                  CYCLING BIOMECHANICAL ANGLE TARGETS
+                          BIOMECHANICAL REFERENCE RANGES
  ┌───────────────────────────┬──────────────┬──────────────┬──────────────┐
- │ Joint / Phase             │ Road Racing  │ TT / Tri     │ Gravel/Endur │
+ │ Kinematic Metric          │ Road Racing  │ TT / Tri     │ Gravel/Endur │
  ├───────────────────────────┼──────────────┼──────────────┼──────────────┤
  │ Knee Extension (BDC 6h)   │ 140° - 150°  │ 145° - 153°  │ 138° - 148°  │
  │ Knee Flexion (TDC 12h)    │ 68° - 75°    │ 65° - 72°    │ 70° - 78°    │
- │ Hip Closed Angle (TDC)    │ 45° - 55°    │ 40° - 48°    │ 50° - 60°    │
+ │ Closed Hip Angle (TDC)    │ 45° - 55°    │ 40° - 48°    │ 50° - 60°    │
  │ Torso Incline to Horiz.   │ 40° - 50°    │ 15° - 25°    │ 45° - 55°    │
- │ Shoulder / Upper Arm      │ 85° - 95°    │ 80° - 90°    │ 85° - 95°    │
+ │ Shoulder / Cockpit Angle  │ 85° - 95°    │ 80° - 90°    │ 85° - 95°    │
  │ Ankle Angle at BDC        │ 90° - 105°   │ 95° - 110°   │ 90° - 100°   │
  └───────────────────────────┴──────────────┴──────────────┴──────────────┘
 ```
 
 ---
 
-## 🏗️ Architecture & Kinematic Pipeline
-
-```mermaid
-flowchart TD
-    A[📹 Video Input / Webcam / Image] --> B[🔍 MediaPipe Heavy Pose Detector]
-    B --> C[33 Anatomical Keypoints with 3D Metric Coordinates]
-    
-    subgraph Kinematic Stabilization
-        C --> D[Adaptive 1€ Dynamic Temporal Filter]
-        D --> E[Physiological Bone-Length Invariance Constraint]
-        E --> F[Harmonic Crank Phase Circle Decomposition]
-    end
-    
-    subgraph Biomechanical Diagnostics
-        F --> G[Extract TDC, 3 o'clock, BDC, 9 o'clock Extrema]
-        G --> H[Calculate KOPS, Dynamic Ankling, Knee & Hip Angles]
-        H --> I[Discipline-Specific Deviation Matrix Road/TT/Gravel/MTB]
-    end
-    
-    subgraph AI Consultation & Delivery
-        I --> J[🧠 Google Gemini AI Biomechanical Coach]
-        J --> K[📄 Multi-Page Clinical PDF Dossier]
-        H --> L[🖥️ Interactive Streamlit Web Studio UI]
-    end
-```
-
----
-
-## 🚀 Quickstart & Installation
-
-### Option 1: One-Click Interactive Web Studio (Recommended)
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/pgeedh/NintAi-The-AI-Powered-Bike-Fit-Studio.git
-cd NintAi-The-AI-Powered-Bike-Fit-Studio
-
-# 2. Install dependencies & auto-download models
-pip install -r requirements.txt
-python scripts/download_models.py
-
-# 3. Launch the Studio Web UI!
-streamlit run app.py
-```
-> Open your browser at `http://localhost:8501` to drag and drop videos and view real-time angle gauges.
-
----
-
-### Option 2: Command Line CLI
-
-**Dynamic Video Fitting:**
-```bash
-python src/analyze_video.py \
-  --input assets/examples/videos/testvideo2.mp4 \
-  --output output/annotated_fit.mp4 \
-  --api_key "YOUR_GEMINI_API_KEY"
-```
-
-**Static Image Geometry Measurement:**
-```bash
-python src/analyze_image.py \
-  --input assets/examples/images/3.webp \
-  --calibrate \
-  --measure_bike
-```
-
----
-
-### Option 3: Docker 1-Command Run
-
-```bash
-docker-compose up --build
-```
-> Access the studio instantly at `http://localhost:8501`.
-
----
-
-## 📑 Clinical Report Sample
-
-<p align="center">
-  <img src="assets/examples/images/report_preview.png" width="750px" alt="NintAi PDF Report Preview" style="border-radius: 8px; border: 1px solid #334155;">
-</p>
-
-Every session generates `output/final_nintai_report.pdf` containing:
-- **Quad-Phase High-Res Stills** (TDC, Max Torque, BDC, Upstroke).
-- **Millimeter Adjustment Prescriptions** (Saddle height $\pm\text{mm}$, Saddle fore-aft, Stem reach).
-- **AI Coach Verdict** detailing aerodynamic drag vs power output tradeoffs.
-
----
-
-## 📁 Repository Structure
+## Directory Architecture
 
 ```
 NintAi/
-├── app.py                   # Interactive Streamlit Web Studio UI
-├── notebooks/
-│   └── NintAi_Google_Colab_Demo.ipynb # Free 1-Click Cloud GPU Demo
-├── scripts/
-│   └── download_models.py   # Automated weights downloader
+├── inputs/
+│   ├── videos/              # Raw cycling video footage
+│   └── images/              # Frame and geometry photos
+├── outputs/
+│   ├── videos/              # Annotated kinematic video streams
+│   ├── reports/             # Clinical PDF dossiers
+│   └── snapshots/           # 4-phase diagnostic stills
+├── models/                  # Neural weights & task models
 ├── src/
-│   ├── analyze_video.py     # Main dynamic video fitting pipeline
-│   ├── analyze_image.py     # Static image & bike geometry analysis
-│   ├── tracking_mp.py       # MediaPipe BlazePose Heavy 3D wrapper
-│   ├── core.py              # Biomechanical kinematics & 1€ filter
-│   ├── ai_report.py         # Google Gemini AI consultation engine
-│   ├── report.py            # Clinical PDF report generator (FPDF)
-│   └── models/              # Neural weights & task bundles
-├── docs/
-│   └── LAUNCH_KIT.md        # Viral social media launch playbook
+│   ├── __init__.py          # Package initialization
+│   ├── tracker.py           # Unified 33-point pose tracker
+│   ├── kinematics.py        # Biomechanical formulations & 1€ filter
+│   ├── analyzer.py          # Dynamic video kinematics processor
+│   ├── ai_fitter.py         # Multi-provider diagnostic engine (Claude/Gemini/Offline)
+│   └── pdf_generator.py     # Clean vector PDF report compiler
+├── notebooks/
+│   └── NintAi_Google_Colab_Demo.ipynb # Cloud GPU demo
+├── scripts/
+│   └── download_models.py   # Model dependency installer
+├── app.py                   # Studio Web UI
 ├── Dockerfile               # Production container image
-├── docker-compose.yml       # Local multi-service config
-├── pyproject.toml           # Modern Python packaging
-└── requirements.txt         # Project dependencies
+├── docker-compose.yml       # Local compose configuration
+├── pyproject.toml           # Package configuration
+└── requirements.txt         # Dependency manifest
 ```
 
 ---
 
-## 🤝 Contributing
+## Quickstart
 
-We welcome contributions from cyclists, biomechanists, and computer vision engineers!
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/NewKinematicMetric`)
-3. Commit your Changes (`git commit -m 'Add Knee Lateral Wobble Metric'`)
-4. Push to the Branch (`git push origin feature/NewKinematicMetric`)
-5. Open a Pull Request
+### 1. Installation
+
+```bash
+git clone https://github.com/pgeedh/NintAi-The-AI-Powered-Bike-Fit-Studio.git
+cd NintAi-The-AI-Powered-Bike-Fit-Studio
+
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python scripts/download_models.py
+```
+
+### 2. Launch Web Studio
+
+```bash
+streamlit run app.py --server.port=8080
+```
+Navigate to `http://localhost:8080` in your web browser.
 
 ---
 
-## 📜 License & Citation
+## Disclaimer & Safety Note
 
-Distributed under the **MIT License**.
+NintAi is an educational and diagnostic software tool designed for cyclists and fit enthusiasts. It is not a replacement for medical diagnosis or physical therapy. If you experience persistent sharp pain, neurological numbness, or weakness while cycling, cease adjustments immediately and consult a certified medical professional or sports physiotherapist.
 
-```bibtex
-@software{geedh2024nintai,
-  author = {Pruthvi Omkar Geedh},
-  title = {NintAi: AI-Powered Biomechanical Bike Fitting Studio},
-  year = {2024},
-  url = {https://github.com/pgeedh/NintAi-The-AI-Powered-Bike-Fit-Studio}
-}
-```
+---
 
-<p align="center">
-  <sub>Crafted with ❤️ for the passion of cycling and triathlon by <a href="https://github.com/pgeedh">Pruthvi</a>.</sub>
-</p>
+## License
+
+Distributed under the MIT License. See `LICENSE` for details.

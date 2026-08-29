@@ -1,10 +1,15 @@
-import numpy as np
-import cv2
+"""
+NintAi Biomechanical Kinematics Engine.
+Mathematical formulations for cycling dynamic motion capture.
+"""
+
 import math
+import cv2
+import numpy as np
 
 class OneEuroFilter:
     """
-    Adaptive 1€ Filter for smooth, low-latency tracking of 2D/3D biomechanical keypoints.
+    Adaptive 1€ Filter for low-latency signal smoothing.
     """
     def __init__(self, t0=0, x0=None, min_cutoff=1.0, beta=0.007, d_cutoff=1.0):
         if x0 is None:
@@ -51,8 +56,7 @@ class OneEuroFilter:
 
 class BoneLengthEnforcer:
     """
-    Kinematic constraint filter ensuring physiological segment lengths
-    (Femur, Tibia, Torso) remain constant across frames.
+    Constrains anatomical segment lengths (femur, tibia, torso) to constant bounds.
     """
     def __init__(self, tolerance=0.08):
         self.tolerance = tolerance
@@ -82,14 +86,12 @@ class BoneLengthEnforcer:
         knee = np.array(landmarks['knee'], dtype=float)
         ankle = np.array(landmarks['ankle'], dtype=float)
 
-        # Enforce Femur
         vec_fk = knee - hip
         dist_fk = np.linalg.norm(vec_fk)
         if dist_fk > 0 and abs(dist_fk - self.bone_lengths['femur']) / self.bone_lengths['femur'] > self.tolerance:
             knee = hip + (vec_fk / dist_fk) * self.bone_lengths['femur']
             landmarks['knee'] = knee.tolist()
 
-        # Enforce Tibia
         vec_ka = ankle - knee
         dist_ka = np.linalg.norm(vec_ka)
         if dist_ka > 0 and abs(dist_ka - self.bone_lengths['tibia']) / self.bone_lengths['tibia'] > self.tolerance:
@@ -99,9 +101,9 @@ class BoneLengthEnforcer:
         return landmarks
 
 
-def calculate_angle(a, b, c):
+def calculate_angle_2d(a, b, c) -> float:
     """
-    Calculates 2D planar angle ABC (vertex at B) in degrees.
+    Computes interior 2D planar angle ABC (vertex at B).
     """
     a = np.array(a, dtype=float)
     b = np.array(b, dtype=float)
@@ -116,53 +118,33 @@ def calculate_angle(a, b, c):
     return float(angle)
 
 
-def calculate_angle_2d(a, b, c):
-    return calculate_angle(a, b, c)
-
-
-def calculate_angle_3d(a, b, c):
+def calculate_angle_3d(a, b, c) -> float:
     """
-    Calculates true 3D spatial angle ABC (vertex at B) in degrees using 3D metric coordinates.
-    Eliminates camera perspective distortion.
+    Computes 3D spatial angle ABC in degrees using metric world coordinates.
     """
-    a = np.array(a, dtype=float)
-    b = np.array(b, dtype=float)
-    c = np.array(c, dtype=float)
-
-    ba = a - b
-    bc = c - b
+    ba = np.array(a, dtype=float) - np.array(b, dtype=float)
+    bc = np.array(c, dtype=float) - np.array(b, dtype=float)
 
     norm_ba = np.linalg.norm(ba)
     norm_bc = np.linalg.norm(bc)
     if norm_ba < 1e-6 or norm_bc < 1e-6:
         return 0.0
 
-    cosine_angle = np.dot(ba, bc) / (norm_ba * norm_bc)
-    cosine_angle = np.clip(cosine_angle, -1.0, 1.0)
-    return float(np.degrees(np.arccos(cosine_angle)))
+    cosine = np.dot(ba, bc) / (norm_ba * norm_bc)
+    cosine = np.clip(cosine, -1.0, 1.0)
+    return float(np.degrees(np.arccos(cosine)))
 
 
-def calculate_torso_angle(shoulder, hip):
-    """
-    Calculates the back/torso angle relative to the horizontal plane.
-    """
+def calculate_torso_angle(shoulder, hip) -> float:
     dx = shoulder[0] - hip[0]
-    dy = hip[1] - shoulder[1]  # Inverted Y for image coordinates
+    dy = hip[1] - shoulder[1]
     return float(abs(math.degrees(math.atan2(dy, abs(dx)))))
 
 
-def calculate_distance(p1, p2):
-    return float(np.linalg.norm(np.array(p1) - np.array(p2)))
-
-
-def calculate_ankling_angle(knee, ankle, heel, toe):
-    """
-    Calculates dynamic ankling angle: angle between the tibia (knee->ankle)
-    and the foot line (heel->toe).
-    """
+def calculate_ankling_angle(knee, ankle, heel, toe) -> float:
     tibia_vec = np.array(ankle) - np.array(knee)
     foot_vec = np.array(toe) - np.array(heel)
-    
+
     norm_t = np.linalg.norm(tibia_vec)
     norm_f = np.linalg.norm(foot_vec)
     if norm_t < 1e-6 or norm_f < 1e-6:
@@ -173,24 +155,13 @@ def calculate_ankling_angle(knee, ankle, heel, toe):
     return float(np.degrees(np.arccos(cosine)))
 
 
-def calculate_kops_offset(knee, ankle_at_3oclock, pixel_to_cm_scale=1.0):
-    horizontal_offset_px = knee[0] - ankle_at_3oclock[0]
-    return float(horizontal_offset_px * pixel_to_cm_scale)
-
-
-def detect_side(landmarks):
-    """
-    Determines whether rider's left or right side is facing camera.
-    """
+def detect_rider_side(landmarks: dict) -> str:
     left_score = sum(1 for k in landmarks if k.startswith('left_'))
     right_score = sum(1 for k in landmarks if k.startswith('right_'))
     return 'left' if left_score >= right_score else 'right'
 
 
-def get_primary_landmarks(landmarks, side):
-    """
-    Extracts the primary active landmarks for the detected side.
-    """
+def extract_primary_side_landmarks(landmarks: dict, side: str) -> dict:
     primary = {}
     for key in ['shoulder', 'elbow', 'wrist', 'hip', 'knee', 'ankle', 'heel', 'toe', 'ear', 'eye']:
         side_key = f"{side}_{key}"
@@ -203,56 +174,69 @@ def get_primary_landmarks(landmarks, side):
     return primary
 
 
-def analyze_posture(lm):
-    """
-    Computes all biomechanical angles for a given landmark dictionary.
-    """
+def compute_postural_angles(lm: dict) -> dict:
     angles = {}
     if 'hip' in lm and 'knee' in lm and 'ankle' in lm:
-        angles['knee'] = calculate_angle(lm['hip'], lm['knee'], lm['ankle'])
+        angles['knee'] = calculate_angle_2d(lm['hip'], lm['knee'], lm['ankle'])
     if 'shoulder' in lm and 'hip' in lm and 'knee' in lm:
-        angles['hip'] = calculate_angle(lm['shoulder'], lm['hip'], lm['knee'])
+        angles['hip'] = calculate_angle_2d(lm['shoulder'], lm['hip'], lm['knee'])
     if 'shoulder' in lm and 'hip' in lm:
         angles['back'] = calculate_torso_angle(lm['shoulder'], lm['hip'])
     if 'hip' in lm and 'shoulder' in lm and 'elbow' in lm:
-        angles['arm_torso'] = calculate_angle(lm['hip'], lm['shoulder'], lm['elbow'])
+        angles['arm_torso'] = calculate_angle_2d(lm['hip'], lm['shoulder'], lm['elbow'])
     if 'shoulder' in lm and 'elbow' in lm and 'wrist' in lm:
-        angles['elbow'] = calculate_angle(lm['shoulder'], lm['elbow'], lm['wrist'])
-    if 'ear' in lm and 'shoulder' in lm and 'hip' in lm:
-        angles['neck'] = calculate_angle(lm['ear'], lm['shoulder'], lm['hip'])
-    else:
-        angles['neck'] = 145.0
-    if 'elbow' in lm and 'wrist' in lm:
-        angles['wrist_tilt'] = 10.0
-    else:
-        angles['wrist_tilt'] = 10.0
+        angles['elbow'] = calculate_angle_2d(lm['shoulder'], lm['elbow'], lm['wrist'])
     if 'knee' in lm and 'ankle' in lm and 'heel' in lm and 'toe' in lm:
         angles['foot_angle'] = calculate_ankling_angle(lm['knee'], lm['ankle'], lm['heel'], lm['toe'])
     else:
         angles['foot_angle'] = 95.0
-
     return angles
 
 
-def draw_angle_arc(image, p1, p2, p3, angle, color=(0, 255, 0), radius=35):
-    """
-    Draws a biomechanical angle arc with text label on the OpenCV image.
-    """
-    try:
-        cv2.circle(image, (int(p2[0]), int(p2[1])), 6, color, -1)
-        text_pos = (int(p2[0] + 15), int(p2[1] - 10))
-        cv2.putText(image, f"{int(angle)} deg", text_pos, cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2, cv2.LINE_AA)
-        cv2.putText(image, f"{int(angle)} deg", text_pos, cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 1, cv2.LINE_AA)
-    except Exception:
-        pass
+def draw_skeleton_and_angles(frame: np.ndarray, unified_lm: dict, angles: dict, side: str):
+    # Foot shoe polygon
+    if 'ankle' in unified_lm and 'heel' in unified_lm and 'toe' in unified_lm:
+        a = tuple(map(int, unified_lm['ankle']))
+        h = tuple(map(int, unified_lm['heel']))
+        t = tuple(map(int, unified_lm['toe']))
+        pts = np.array([a, h, t], np.int32)
+        cv2.polylines(frame, [pts], True, (0, 229, 255), 2, cv2.LINE_AA)
+        cv2.fillPoly(frame, [pts], (30, 45, 60))
+
+    # Kinetic Chain Lines
+    skel_lines = [
+        ('shoulder', 'elbow', (255, 0, 128)),
+        ('elbow', 'wrist', (255, 0, 128)),
+        ('shoulder', 'hip', (0, 229, 255)),
+        ('hip', 'knee', (16, 185, 129)),
+        ('knee', 'ankle', (16, 185, 129))
+    ]
+    for k1, k2, col in skel_lines:
+        if k1 in unified_lm and k2 in unified_lm:
+            p1 = tuple(map(int, unified_lm[k1]))
+            p2 = tuple(map(int, unified_lm[k2]))
+            cv2.line(frame, p1, p2, col, 3, cv2.LINE_AA)
+
+    # Knee Angle Arc
+    if 'hip' in unified_lm and 'knee' in unified_lm and 'ankle' in unified_lm and 'knee' in angles:
+        kp = tuple(map(int, unified_lm['knee']))
+        cv2.circle(frame, kp, 6, (16, 185, 129), -1, cv2.LINE_AA)
+        cv2.putText(frame, f"{angles['knee']:.1f} deg", (kp[0] + 14, kp[1] - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1, cv2.LINE_AA)
+
+    # HUD Card (Top Left)
+    overlay = frame.copy()
+    cv2.rectangle(overlay, (15, 15), (290, 155), (13, 19, 34), -1)
+    cv2.addWeighted(overlay, 0.82, frame, 0.18, 0, frame)
+    cv2.rectangle(frame, (15, 15), (290, 155), (30, 41, 59), 1)
+
+    cv2.putText(frame, "NINTAI KINEMATICS", (25, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.58, (0, 229, 255), 2, cv2.LINE_AA)
+    cv2.putText(frame, f"Knee Ext:   {angles.get('knee', 0):.1f} deg", (25, 68), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (241, 245, 249), 1, cv2.LINE_AA)
+    cv2.putText(frame, f"Closed Hip: {angles.get('hip', 0):.1f} deg", (25, 92), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (241, 245, 249), 1, cv2.LINE_AA)
+    cv2.putText(frame, f"Torso:      {angles.get('back', 0):.1f} deg", (25, 116), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (241, 245, 249), 1, cv2.LINE_AA)
+    cv2.putText(frame, f"Ankling:    {angles.get('foot_angle', 0):.1f} deg", (25, 140), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (241, 245, 249), 1, cv2.LINE_AA)
 
 
-def draw_hud_angle(image, label, value, pos, is_optimal=True):
-    color = (0, 255, 128) if is_optimal else (0, 100, 255)
-    cv2.putText(image, f"{label}: {value:.1f} deg", pos, cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2, cv2.LINE_AA)
-
-
-# Target angle benchmarks across cycling disciplines
+# Target Benchmarks
 FIT_TARGETS = {
     "ROAD": {
         "knee_ext_max": (140, 150),
