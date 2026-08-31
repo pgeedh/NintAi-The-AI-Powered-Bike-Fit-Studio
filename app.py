@@ -1,5 +1,5 @@
 """
-Open-BikeFit - The Open-Source Biomechanical Bike Fit Studio.
+Open-BikeFit: The Open-Source Biomechanical Bike Fit Studio.
 Apple Human Interface Guidelines (HIG) Minimalist Architecture.
 """
 
@@ -9,7 +9,7 @@ import cv2
 import numpy as np
 import streamlit as st
 
-from src.tracker import MediaPipeBlazePoseTracker
+from src.tracker import PoseTracker
 from src.kinematics import (
     OneEuroFilter,
     BoneLengthEnforcer,
@@ -26,258 +26,49 @@ from src.pdf_generator import build_clinical_pdf
 # Page Configuration
 # ---------------------------------------------------------
 st.set_page_config(
-    page_title="Open-BikeFit - Biomechanical Bike Fit Studio",
+    page_title="Open-BikeFit - Biomechanical Studio",
     page_icon="⚡",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 # ---------------------------------------------------------
-# Apple HIG Styling (Minimalist Space Graphite & Cupertino System Accents)
+# Load External Apple HIG CSS Styling (style.css)
 # ---------------------------------------------------------
-st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+def load_custom_css(css_path: str = "style.css"):
+    if os.path.exists(css_path):
+        with open(css_path, "r", encoding="utf-8") as f:
+            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-:root {
-    --bg-main: #000000;
-    --bg-card: #1C1C1E;
-    --bg-card-hover: #2C2C2E;
-    --bg-secondary: #121214;
-    --border-subtle: rgba(255, 255, 255, 0.08);
-    --border-medium: rgba(255, 255, 255, 0.16);
-    --text-primary: #F5F5F7;
-    --text-secondary: #86868B;
-    --text-muted: #6E6E73;
-    
-    /* Apple System Colors */
-    --system-blue: #0A84FF;
-    --system-green: #30D158;
-    --system-amber: #FF9F0A;
-    --system-red: #FF453A;
-    --system-purple: #BF5AF2;
-}
-
-html, body, [class*="css"] {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
-    color: var(--text-primary);
-    background-color: var(--bg-main);
-}
-
-.stApp {
-    background-color: var(--bg-main);
-}
-
-/* Apple Header */
-.apple-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 18px 24px;
-    background: rgba(28, 28, 30, 0.75);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--border-subtle);
-    border-radius: 16px;
-    margin-bottom: 24px;
-}
-
-.apple-brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.apple-brand-title {
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    color: var(--text-primary);
-}
-
-.apple-brand-badge {
-    font-size: 11px;
-    font-weight: 600;
-    padding: 3px 8px;
-    border-radius: 20px;
-    background: rgba(10, 132, 255, 0.15);
-    color: var(--system-blue);
-    border: 1px solid rgba(10, 132, 255, 0.3);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-/* Stepper Pill Bar */
-.stepper-container {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 28px;
-    overflow-x: auto;
-    padding-bottom: 4px;
-}
-
-.step-pill {
-    flex: 1;
-    min-width: 140px;
-    padding: 12px 14px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-subtle);
-    border-radius: 12px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    transition: all 0.2s ease;
-}
-
-.step-pill.active {
-    background: #2C2C2E;
-    color: var(--text-primary);
-    border-color: var(--system-blue);
-    box-shadow: 0 0 0 1px var(--system-blue);
-}
-
-.step-pill-num {
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--system-blue);
-    text-transform: uppercase;
-    margin-bottom: 2px;
-}
-
-/* Apple Card System */
-.apple-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-subtle);
-    border-radius: 16px;
-    padding: 20px 24px;
-    margin-bottom: 20px;
-    transition: border 0.2s ease;
-}
-
-.apple-card:hover {
-    border-color: var(--border-medium);
-}
-
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-}
-
-.card-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text-primary);
-    letter-spacing: -0.3px;
-}
-
-.card-desc {
-    font-size: 13px;
-    color: var(--text-secondary);
-    margin-bottom: 16px;
-    line-height: 1.5;
-}
-
-/* Metric Telemetry Card */
-.metric-box {
-    background: #141416;
-    border: 1px solid var(--border-subtle);
-    border-radius: 14px;
-    padding: 16px 18px;
-    margin-bottom: 12px;
-}
-
-.metric-label {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    margin-bottom: 4px;
-}
-
-.metric-val {
-    font-family: "JetBrains Mono", monospace;
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 4px;
-}
-
-.metric-target {
-    font-size: 11px;
-    color: var(--text-muted);
-}
-
-/* Apple Badges */
-.badge-optimal {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 6px;
-    background: rgba(48, 209, 88, 0.15);
-    color: var(--system-green);
-    font-size: 11px;
-    font-weight: 600;
-    border: 1px solid rgba(48, 209, 88, 0.3);
-}
-
-.badge-warning {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 6px;
-    background: rgba(255, 159, 10, 0.15);
-    color: var(--system-amber);
-    font-size: 11px;
-    font-weight: 600;
-    border: 1px solid rgba(255, 159, 10, 0.3);
-}
-
-.badge-alert {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 6px;
-    background: rgba(255, 69, 58, 0.15);
-    color: var(--system-red);
-    font-size: 11px;
-    font-weight: 600;
-    border: 1px solid rgba(255, 69, 58, 0.3);
-}
-
-/* Non-Clinical Disclaimer Banner */
-.disclaimer-banner {
-    background: rgba(255, 159, 10, 0.08);
-    border: 1px solid rgba(255, 159, 10, 0.2);
-    border-radius: 12px;
-    padding: 12px 16px;
-    font-size: 12px;
-    color: #E5E5EA;
-    line-height: 1.5;
-    margin-bottom: 24px;
-}
-
-/* Sidebar styling */
-[data-testid="stSidebar"] {
-    background-color: var(--bg-secondary);
-    border-right: 1px solid var(--border-subtle);
-}
-</style>
-""", unsafe_allow_html=True)
+load_custom_css("style.css")
 
 
 # ---------------------------------------------------------
-# Session State Initialization (Persistent Profile Store)
+# Safe Session State Initialization
 # ---------------------------------------------------------
 if "rider_profile" not in st.session_state:
     st.session_state.rider_profile = {
         "name": "Alex Chen",
         "email": "alex.chen@example.com",
         "discipline": "ROAD",
-        "goal": "Balanced Performance",
+        "goal": "Balanced Performance (Standard studio benchmark)",
         "height_cm": 178,
         "inseam_cm": 83,
-        "flexibility": "Moderate",
-        "pain_points": ["Front of Knee (Patella)", "Lower Back Fatigue"],
+        "flexibility": "Moderate (Standard)",
+        "pain_points": ["Front of Knee (Patella / Anterior)", "Lower Back Fatigue"],
         "bike_brand": "Specialized Tarmac SL7"
     }
+
+# Sanitize flexibility state to avoid slider ValueError
+FLEX_OPTIONS = ["Low (Tight)", "Moderate (Standard)", "High (Very Flexible)"]
+current_flex = st.session_state.rider_profile.get("flexibility", "Moderate (Standard)")
+if current_flex not in FLEX_OPTIONS:
+    if "low" in str(current_flex).lower():
+        st.session_state.rider_profile["flexibility"] = "Low (Tight)"
+    elif "high" in str(current_flex).lower() or "flex" in str(current_flex).lower():
+        st.session_state.rider_profile["flexibility"] = "High (Very Flexible)"
+    else:
+        st.session_state.rider_profile["flexibility"] = "Moderate (Standard)"
 
 if "active_step" not in st.session_state:
     st.session_state.active_step = "1. Rider Intake"
@@ -290,13 +81,13 @@ if "ai_report_text" not in st.session_state:
 
 
 # ---------------------------------------------------------
-# Top Navigation Bar
+# Top Navigation Bar & Header
 # ---------------------------------------------------------
 st.markdown("""
 <div class="apple-nav">
     <div class="apple-brand">
         <div class="apple-brand-title">Open-BikeFit</div>
-        <div class="apple-brand-badge">Studio Studio v2.5</div>
+        <div class="apple-brand-badge">Studio v2.5</div>
     </div>
     <div style="font-size: 13px; color: #86868B;">
         Open-Source Biomechanical Baseline & Rapid Hardware Diagnostics
@@ -304,10 +95,6 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-
-# ---------------------------------------------------------
-# Non-Clinical Safe Disclaimer Banner
-# ---------------------------------------------------------
 st.markdown("""
 <div class="disclaimer-banner">
     <strong>Kinematic Baseline Tool Notice:</strong> Open-BikeFit is designed to calculate joint angle envelopes and provide geometric hardware baseline estimates for riders and bike fitters. It is not a medical device or physical therapy diagnostic service.
@@ -316,7 +103,7 @@ st.markdown("""
 
 
 # ---------------------------------------------------------
-# Multi-Step Segmented Flow (MyVeloFit Inspired)
+# 6-Step MyVeloFit Navigation Stepper
 # ---------------------------------------------------------
 STEPS = [
     "1. Rider Intake",
@@ -327,23 +114,20 @@ STEPS = [
     "6. Studio Report"
 ]
 
-current_idx = STEPS.index(st.session_state.active_step) if st.session_state.active_step in STEPS else 0
-
 step_cols = st.columns(len(STEPS))
 for i, step_name in enumerate(STEPS):
     with step_cols[i]:
         is_active = (step_name == st.session_state.active_step)
         if st.button(
-            f"{step_name}", 
-            key=f"nav_step_{i}", 
+            step_name, 
+            key=f"nav_btn_{i}", 
             type="primary" if is_active else "secondary", 
             use_container_width=True
         ):
             st.session_state.active_step = step_name
             st.rerun()
 
-
-st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
 
 
 # =========================================================
@@ -368,9 +152,9 @@ if st.session_state.active_step == "1. Rider Intake":
         
         dim_col1, dim_col2 = st.columns(2)
         with dim_col1:
-            height = st.number_input("Rider Height (cm)", min_value=120, max_value=230, value=st.session_state.rider_profile["height_cm"])
+            height = st.number_input("Rider Height (cm)", min_value=120, max_value=230, value=int(st.session_state.rider_profile["height_cm"]))
         with dim_col2:
-            inseam = st.number_input("Inseam Length (cm)", min_value=50, max_value=110, value=st.session_state.rider_profile["inseam_cm"])
+            inseam = st.number_input("Inseam Length (cm)", min_value=50, max_value=110, value=int(st.session_state.rider_profile["inseam_cm"]))
             
         bike_model = st.text_input("Current Bike / Model", value=st.session_state.rider_profile.get("bike_brand", "Road Bike"))
 
@@ -378,18 +162,28 @@ if st.session_state.active_step == "1. Rider Intake":
         st.markdown("#### Discipline & Fit Objective")
         disc_options = ["ROAD", "GRAVEL_ENDURANCE", "TRIATHLON_TT", "MTB"]
         disc_labels = ["Road (Endurance & Sportive)", "Gravel & All-Road", "Triathlon & Time Trial (Aero)", "Mountain Bike (XC/Trail)"]
-        disc_choice = st.selectbox("Primary Riding Discipline", range(len(disc_options)), format_func=lambda x: disc_labels[x])
+        
+        current_disc = st.session_state.rider_profile.get("discipline", "ROAD")
+        curr_disc_idx = disc_options.index(current_disc) if current_disc in disc_options else 0
+        disc_choice = st.selectbox("Primary Riding Discipline", range(len(disc_options)), index=curr_disc_idx, format_func=lambda x: disc_labels[x])
         selected_disc = disc_options[disc_choice]
         
-        goal = st.selectbox(
-            "Fit Priority Goal", 
-            ["Comfort & Endurance (Reduced spine & neck strain)", "Balanced Performance (Standard studio benchmark)", "Aggressive Aero & Speed (Low stack, flat back)"]
-        )
+        goal_options = [
+            "Comfort & Endurance (Reduced spine & neck strain)", 
+            "Balanced Performance (Standard studio benchmark)", 
+            "Aggressive Aero & Speed (Low stack, flat back)"
+        ]
+        current_goal = st.session_state.rider_profile.get("goal", goal_options[1])
+        curr_goal_idx = goal_options.index(current_goal) if current_goal in goal_options else 1
+        goal = st.selectbox("Fit Priority Goal", goal_options, index=curr_goal_idx)
         
+        # Flexibility Slider with guaranteed safe index
+        curr_flex = st.session_state.rider_profile.get("flexibility", "Moderate (Standard)")
+        curr_flex_idx = FLEX_OPTIONS.index(curr_flex) if curr_flex in FLEX_OPTIONS else 1
         flexibility = st.select_slider(
             "Hamstring & Lower Back Flexibility",
-            options=["Low (Tight)", "Moderate (Standard)", "High (Very Flexible)"],
-            value=st.session_state.rider_profile.get("flexibility", "Moderate (Standard)")
+            options=FLEX_OPTIONS,
+            value=FLEX_OPTIONS[curr_flex_idx]
         )
 
         st.markdown("#### Discomfort / Symptoms to Address")
@@ -407,6 +201,7 @@ if st.session_state.active_step == "1. Rider Intake":
             default=[p for p in st.session_state.rider_profile.get("pain_points", []) if p in pain_options]
         )
 
+    st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
     if st.button("Save Profile & Continue to Setup Guide →", type="primary", use_container_width=True):
         st.session_state.rider_profile = {
             "name": name,
@@ -442,14 +237,14 @@ elif st.session_state.active_step == "2. Setup Guide":
         <div class="metric-box">
             <div style="font-weight:600; color:#F5F5F7; margin-bottom:6px;">1. Camera Height & Leveling</div>
             <div style="font-size:13px; color:#86868B; line-height:1.5;">
-                Position your phone/tripod level with the bike's bottom bracket axle (~65–75 cm from the floor). Avoid pointing the lens downward.
+                Position your phone or tripod level with the bike's bottom bracket axle (~65–75 cm from the floor). Avoid tilting the lens downward.
             </div>
         </div>
         
         <div class="metric-box">
             <div style="font-weight:600; color:#F5F5F7; margin-bottom:6px;">2. Distance & Perspective</div>
             <div style="font-size:13px; color:#86868B; line-height:1.5;">
-                Place the camera <strong>2.5 to 3.5 meters</strong> away, exactly perpendicular (90°) to the bike. Both wheels must be fully visible.
+                Place the camera <strong>2.5 to 3.5 meters</strong> away, perpendicular (90°) to the bike. Both wheels must be visible in frame.
             </div>
         </div>
         
@@ -594,7 +389,7 @@ elif st.session_state.active_step == "4. Kinematic Run":
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         writer = cv2.VideoWriter(out_annotated, fourcc, fps, (w, h))
 
-        tracker = MediaPipeBlazePoseTracker()
+        tracker = PoseTracker()
         filter_euro = OneEuroFilter(t0=0, min_cutoff=1.2, beta=0.008)
         bone_enforcer = BoneLengthEnforcer(tolerance=0.08)
 
@@ -612,7 +407,6 @@ elif st.session_state.active_step == "4. Kinematic Run":
             if not ret:
                 break
 
-            t_sec = frame_idx / float(fps)
             landmarks = tracker.detect_landmarks(frame)
 
             if landmarks:
@@ -639,7 +433,6 @@ elif st.session_state.active_step == "4. Kinematic Run":
                         best_bdc_frame = frame.copy()
 
                 if 'knee' in primary and 'hip' in primary:
-                    # 3 o'clock horizontal femur
                     dy = abs(primary['knee'][1] - primary['hip'][1])
                     if dy < best_power_score:
                         best_power_score = dy
@@ -700,7 +493,7 @@ elif st.session_state.active_step == "4. Kinematic Run":
 
 
 # =========================================================
-# STEP 5: TELEMETRY DASHBOARD & 4-PHASE STUIDO
+# STEP 5: TELEMETRY DASHBOARD & 4-PHASE STUDIO
 # =========================================================
 elif st.session_state.active_step == "5. Telemetry Studio":
     stats = st.session_state.analysis_results
@@ -821,7 +614,7 @@ elif st.session_state.active_step == "6. Studio Report":
         <div class="apple-card">
             <div class="card-title">Step 6 · Professional Studio Fit Report & Wrench Guide</div>
             <div class="card-desc">
-                Generate an authentic, studio-grade bicycle fit report with millimeter hardware adjustments. The API key is used strictly for formatting and structuring the narrative report.
+                Generate a studio-grade bicycle fit report with millimeter hardware adjustments. The API key is used strictly for formatting and structuring the narrative report.
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -862,7 +655,6 @@ elif st.session_state.active_step == "6. Studio Report":
             st.markdown("#### Studio Fit Dossier")
             
             if not st.session_state.ai_report_text:
-                # Generate default offline report if empty
                 st.session_state.ai_report_text = generate_rule_based_breakdown(stats, targets, rider_prof)
 
             st.markdown(st.session_state.ai_report_text)

@@ -1,0 +1,214 @@
+/*
+ * Open-BikeFit - Apple Human Interface Guidelines (HIG) Dark Theme Style System
+ * High-performance, minimalist UI styling for cyclists & bike fit studios.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root {
+    /* Color Palette */
+    --bg-base: #000000;
+    --bg-surface: #121214;
+    --bg-card: #1C1C1E;
+    --bg-card-hover: #2C2C2E;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-medium: rgba(255, 255, 255, 0.16);
+    --text-primary: #F5F5F7;
+    --text-secondary: #86868B;
+    --text-muted: #6E6E73;
+    
+    /* Apple Cupertino System Accents */
+    --system-blue: #0A84FF;
+    --system-green: #30D158;
+    --system-amber: #FF9F0A;
+    --system-red: #FF453A;
+    --system-purple: #BF5AF2;
+}
+
+html, body, [class*="css"] {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+    color: var(--text-primary);
+    background-color: var(--bg-base);
+}
+
+.stApp {
+    background-color: var(--bg-base);
+}
+
+/* Apple Navigation Bar */
+.apple-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 22px;
+    background: rgba(28, 28, 30, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    margin-bottom: 20px;
+}
+
+.apple-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.apple-brand-title {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+    color: var(--text-primary);
+}
+
+.apple-brand-badge {
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 12px;
+    background: rgba(10, 132, 255, 0.15);
+    color: var(--system-blue);
+    border: 1px solid rgba(10, 132, 255, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Non-Clinical Disclaimer Banner */
+.disclaimer-banner {
+    background: rgba(255, 159, 10, 0.08);
+    border: 1px solid rgba(255, 159, 10, 0.22);
+    border-radius: 12px;
+    padding: 12px 18px;
+    font-size: 12.5px;
+    color: #E5E5EA;
+    line-height: 1.5;
+    margin-bottom: 22px;
+}
+
+/* Apple Card System */
+.apple-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    padding: 20px 22px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+.card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.3px;
+    margin-bottom: 4px;
+}
+
+.card-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+/* Metric Telemetry Card */
+.metric-box {
+    background: #141416;
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    transition: border-color 0.2s ease;
+}
+
+.metric-box:hover {
+    border-color: var(--border-medium);
+}
+
+.metric-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+}
+
+.metric-val {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    letter-spacing: -0.5px;
+}
+
+.metric-target {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* Apple Status Badges */
+.badge-optimal {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(48, 209, 88, 0.15);
+    color: var(--system-green);
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid rgba(48, 209, 88, 0.3);
+}
+
+.badge-warning {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(255, 159, 10, 0.15);
+    color: var(--system-amber);
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid rgba(255, 159, 10, 0.3);
+}
+
+.badge-alert {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(255, 69, 58, 0.15);
+    color: var(--system-red);
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid rgba(255, 69, 58, 0.3);
+}
+
+/* Button Customizations */
+div.stButton > button[kind="primary"] {
+    background-color: var(--system-blue);
+    border-radius: 10px;
+    border: none;
+    color: #FFFFFF;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 10px 18px;
+    box-shadow: 0 2px 10px rgba(10, 132, 255, 0.35);
+    transition: all 0.2s ease;
+}
+
+div.stButton > button[kind="primary"]:hover {
+    background-color: #0071E3;
+    box-shadow: 0 4px 14px rgba(10, 132, 255, 0.5);
+}
+
+div.stButton > button[kind="secondary"] {
+    background-color: #2C2C2E;
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 13.5px;
+    transition: all 0.2s ease;
+}
+
+div.stButton > button[kind="secondary"]:hover {
+    background-color: #3A3A3C;
+    border-color: var(--border-medium);
+}
