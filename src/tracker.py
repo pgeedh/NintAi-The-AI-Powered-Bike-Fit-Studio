@@ -52,6 +52,10 @@ class PoseTracker:
         else:
             return self.landmarker.detect(mp_image)
 
+    def detect_landmarks(self, image: np.ndarray, timestamp_ms: int = None) -> dict:
+        results = self.process_frame(image, timestamp_ms=timestamp_ms)
+        return self.extract_landmarks_2d(results, image.shape)
+
     def extract_landmarks_2d(self, results, image_shape: tuple) -> dict:
         if not results or not results.pose_landmarks or len(results.pose_landmarks) == 0:
             return {}

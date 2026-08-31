@@ -17,10 +17,11 @@
       "created_at": "2026-08-31T09:08:40.199438"
     },
     {
+      "id": "rider-ce5d2309",
       "name": "Sarah Connor",
       "email": "sarah@example.com",
       "discipline": "TRIATHLON_TT",
-      "goal": "Aggressive Aero & Speed",
+      "goal": "Balanced Performance (Standard studio benchmark)",
       "height_cm": 172,
       "inseam_cm": 80,
       "flexibility": "High (Very Flexible)",
@@ -28,9 +29,8 @@
         "Neck & Shoulder Strain"
       ],
       "bike_brand": "Cervelo P5",
-      "id": "rider-ce5d2309",
-      "created_at": "2026-08-31T09:08:40.199758",
-      "updated_at": "2026-08-31T09:08:40.199761"
+      "created_at": "2026-08-31T09:10:04.403975",
+      "updated_at": "2026-08-31T09:10:04.404079"
     }
   ],
   "active_profile_id": "rider-ce5d2309"

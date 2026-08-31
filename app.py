@@ -413,7 +413,8 @@ elif st.session_state.active_step == "4. Kinematic Run":
             if not ret:
                 break
 
-            landmarks = tracker.detect_landmarks(frame)
+            ts_ms = int(frame_idx * 1000.0 / max(fps, 1))
+            landmarks = tracker.detect_landmarks(frame, timestamp_ms=ts_ms)
 
             if landmarks:
                 if detected_side is None:

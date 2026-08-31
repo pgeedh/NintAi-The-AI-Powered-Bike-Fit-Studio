@@ -162,9 +162,15 @@ def process_cycling_video(
         output_path=output_pdf_path
     )
 
-    return {
+    res = dict(stats)
+    res.update({
         'stats': stats,
         'consultation': consultation,
         'annotated_video': output_video_path,
-        'pdf_report': output_pdf_path
-    }
+        'pdf_report': output_pdf_path,
+        'snap_tdc': snap_tdc,
+        'snap_bdc': snap_bdc,
+        'snap_power': snap_power,
+        'snap_overall': snap_overall
+    })
+    return res
