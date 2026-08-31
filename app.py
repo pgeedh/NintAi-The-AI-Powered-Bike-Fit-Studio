@@ -870,7 +870,7 @@ elif st.session_state.active_step == "6. Studio Report":
             st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
             
             # PDF Generation
-            pdf_path = "outputs/reports/openvelofit_report.pdf"
+            pdf_path = "outputs/reports/openbikefit_report.pdf"
             if st.button("Compile PDF Studio Dossier", use_container_width=True):
                 build_clinical_pdf(
                     snap_tdc=stats['snap_tdc'],
@@ -890,7 +890,7 @@ elif st.session_state.active_step == "6. Studio Report":
                     st.download_button(
                         label="Download PDF Fit Report",
                         data=f.read(),
-                        file_name=f"OpenVeloFit_{rider_prof['name'].replace(' ', '_')}.pdf",
+                        file_name=f"OpenBikeFit_{rider_prof['name'].replace(' ', '_')}.pdf",
                         mime="application/pdf",
                         use_container_width=True
                     )
@@ -906,7 +906,7 @@ elif st.session_state.active_step == "6. Studio Report":
             st.download_button(
                 label="Export JSON Fit Profile",
                 data=fit_json,
-                file_name=f"OpenVeloFit_{rider_prof['name'].replace(' ', '_')}.json",
+                file_name=f"OpenBikeFit_{rider_prof['name'].replace(' ', '_')}.json",
                 mime="application/json",
                 use_container_width=True
             )

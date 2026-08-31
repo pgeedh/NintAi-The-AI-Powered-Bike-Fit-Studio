@@ -22,7 +22,7 @@ class PoseTracker:
 
         if not os.path.exists(model_path):
             os.makedirs(os.path.dirname(model_path), exist_ok=True)
-            print(f"[NintAi] Downloading pose_landmarker_heavy.task to {model_path}...")
+            print(f"[Open-BikeFit] Downloading pose_landmarker_heavy.task to {model_path}...")
             url = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/latest/pose_landmarker_heavy.task"
             urllib.request.urlretrieve(url, model_path)
 

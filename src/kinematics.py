@@ -1,5 +1,5 @@
 """
-NintAi Biomechanical Kinematics Engine.
+Open-BikeFit Biomechanical Kinematics Engine.
 Mathematical formulations for cycling dynamic motion capture.
 """
 

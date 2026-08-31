@@ -5,17 +5,18 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "open-bikefit"
 version = "1.0.0"
-description = "Open-BikeFit: Professional AI-Powered Bike Fitting & Biomechanical Motion Studio"
+description = "Open-BikeFit: The Open-Source Biomechanical Bike Fit Studio"
 readme = "README.md"
 authors = [{ name = "Pruthvi", email = "pgeedh@users.noreply.github.com" }]
 license = { text = "MIT" }
-keywords = ["bike-fit", "biomechanics", "cycling", "triathlon", "mediapipe", "yolov11", "gemini-ai", "computer-vision"]
+keywords = ["bike-fit", "biomechanics", "cycling", "triathlon", "mediapipe", "blazepose", "computer-vision"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Image Recognition",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
@@ -25,12 +26,9 @@ dependencies = [
     "mediapipe>=0.10.14",
     "numpy>=1.24.0",
     "pandas>=2.0.0",
-    "openpyxl>=3.1.0",
-    "ultralytics>=8.3.0",
     "fpdf>=1.7.2",
-    "seaborn>=0.12.0",
-    "matplotlib>=3.7.0",
     "google-generativeai>=0.8.0",
+    "anthropic>=0.18.0",
     "python-dotenv>=1.0.0",
     "streamlit>=1.30.0",
     "pillow>=10.0.0",
@@ -42,6 +40,4 @@ Homepage = "https://github.com/pgeedh/Open-BikeFit-The-AI-Powered-Bike-Fit-Studi
 Repository = "https://github.com/pgeedh/Open-BikeFit-The-AI-Powered-Bike-Fit-Studio.git"
 
 [project.scripts]
-open-bikefit-studio = "app:main"
-open-bikefit-video = "src.analyze_video:main"
-open-bikefit-image = "src.analyze_image:main"
+open-bikefit = "app:main"
