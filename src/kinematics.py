@@ -223,17 +223,17 @@ def draw_skeleton_and_angles(frame: np.ndarray, unified_lm: dict, angles: dict, 
         cv2.circle(frame, kp, 6, (16, 185, 129), -1, cv2.LINE_AA)
         cv2.putText(frame, f"{angles['knee']:.1f} deg", (kp[0] + 14, kp[1] - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1, cv2.LINE_AA)
 
-    # HUD Card (Top Left)
+    # Open-BikeFit Telemetry HUD Card (Top Left)
     overlay = frame.copy()
-    cv2.rectangle(overlay, (15, 15), (290, 155), (13, 19, 34), -1)
-    cv2.addWeighted(overlay, 0.82, frame, 0.18, 0, frame)
-    cv2.rectangle(frame, (15, 15), (290, 155), (30, 41, 59), 1)
+    cv2.rectangle(overlay, (15, 15), (290, 155), (18, 18, 20), -1)
+    cv2.addWeighted(overlay, 0.85, frame, 0.15, 0, frame)
+    cv2.rectangle(frame, (15, 15), (290, 155), (58, 58, 60), 1)
 
-    cv2.putText(frame, "NINTAI KINEMATICS", (25, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.58, (0, 229, 255), 2, cv2.LINE_AA)
-    cv2.putText(frame, f"Knee Ext:   {angles.get('knee', 0):.1f} deg", (25, 68), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (241, 245, 249), 1, cv2.LINE_AA)
-    cv2.putText(frame, f"Closed Hip: {angles.get('hip', 0):.1f} deg", (25, 92), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (241, 245, 249), 1, cv2.LINE_AA)
-    cv2.putText(frame, f"Torso:      {angles.get('back', 0):.1f} deg", (25, 116), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (241, 245, 249), 1, cv2.LINE_AA)
-    cv2.putText(frame, f"Ankling:    {angles.get('foot_angle', 0):.1f} deg", (25, 140), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (241, 245, 249), 1, cv2.LINE_AA)
+    cv2.putText(frame, "OPEN-BIKEFIT", (25, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 159, 10), 2, cv2.LINE_AA)
+    cv2.putText(frame, f"Knee Ext:   {angles.get('knee', 0):.1f} deg", (25, 68), cv2.FONT_HERSHEY_SIMPLEX, 0.48, (245, 245, 247), 1, cv2.LINE_AA)
+    cv2.putText(frame, f"Closed Hip: {angles.get('hip', 0):.1f} deg", (25, 92), cv2.FONT_HERSHEY_SIMPLEX, 0.48, (245, 245, 247), 1, cv2.LINE_AA)
+    cv2.putText(frame, f"Torso:      {angles.get('back', 0):.1f} deg", (25, 116), cv2.FONT_HERSHEY_SIMPLEX, 0.48, (245, 245, 247), 1, cv2.LINE_AA)
+    cv2.putText(frame, f"Ankling:    {angles.get('foot_angle', 0):.1f} deg", (25, 140), cv2.FONT_HERSHEY_SIMPLEX, 0.48, (245, 245, 247), 1, cv2.LINE_AA)
 
 
 # Target Benchmarks

@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "nintai"
+name = "open-bikefit"
 version = "1.0.0"
-description = "NintAi: Professional AI-Powered Bike Fitting & Biomechanical Motion Studio"
+description = "Open-BikeFit: Professional AI-Powered Bike Fitting & Biomechanical Motion Studio"
 readme = "README.md"
 authors = [{ name = "Pruthvi", email = "pgeedh@users.noreply.github.com" }]
 license = { text = "MIT" }
@@ -38,10 +38,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/pgeedh/NintAi-The-AI-Powered-Bike-Fit-Studio"
-Repository = "https://github.com/pgeedh/NintAi-The-AI-Powered-Bike-Fit-Studio.git"
+Homepage = "https://github.com/pgeedh/Open-BikeFit-The-AI-Powered-Bike-Fit-Studio"
+Repository = "https://github.com/pgeedh/Open-BikeFit-The-AI-Powered-Bike-Fit-Studio.git"
 
 [project.scripts]
-nintai-studio = "app:main"
-nintai-video = "src.analyze_video:main"
-nintai-image = "src.analyze_image:main"
+open-bikefit-studio = "app:main"
+open-bikefit-video = "src.analyze_video:main"
+open-bikefit-image = "src.analyze_image:main"

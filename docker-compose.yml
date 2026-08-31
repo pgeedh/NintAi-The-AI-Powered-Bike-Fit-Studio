@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  nintai-studio:
+  open-bikefit-studio:
     build: .
-    container_name: nintai-studio
+    container_name: open-bikefit-studio
     ports:
       - "8501:8501"
     environment:

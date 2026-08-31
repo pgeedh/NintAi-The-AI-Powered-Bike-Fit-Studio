@@ -1,6 +1,6 @@
-# Contributing to NintAi 🚴
+# Contributing to Open-BikeFit 🚴
 
-Thank you for your interest in improving **NintAi**! We are building the most accurate, accessible open-source bike fitting tool in the world.
+Thank you for your interest in improving **Open-BikeFit**! We are building the most accurate, accessible open-source bike fitting tool in the world.
 
 ---
 
@@ -22,8 +22,8 @@ Thank you for your interest in improving **NintAi**! We are building the most ac
 ## 🛠️ Development Setup
 
 ```bash
-git clone https://github.com/pgeedh/NintAi-The-AI-Powered-Bike-Fit-Studio.git
-cd NintAi-The-AI-Powered-Bike-Fit-Studio
+git clone https://github.com/pgeedh/Open-BikeFit-The-AI-Powered-Bike-Fit-Studio.git
+cd Open-BikeFit-The-AI-Powered-Bike-Fit-Studio
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt

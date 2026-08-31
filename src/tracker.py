@@ -1,5 +1,5 @@
 """
-NintAi Pose Tracking Module.
+Open-BikeFit Pose Tracking Module.
 Uses Google MediaPipe BlazePose Heavy (33 landmarks + 3D metric coordinates).
 """
 
@@ -107,3 +107,6 @@ class PoseTracker:
                     world_dict[name] = np.array([lm.x, lm.y, lm.z])
 
         return world_dict
+
+
+MediaPipeBlazePoseTracker = PoseTracker

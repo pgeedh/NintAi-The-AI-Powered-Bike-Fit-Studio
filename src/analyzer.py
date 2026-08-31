@@ -1,5 +1,5 @@
 """
-NintAi Video Motion Capture Analyzer.
+Open-BikeFit Video Motion Capture Analyzer.
 Processes cycling video and extracts multi-revolution kinematic statistics.
 """
 
