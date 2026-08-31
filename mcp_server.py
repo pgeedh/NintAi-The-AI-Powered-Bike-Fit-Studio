@@ -334,7 +334,11 @@ def main():
                 tool_name = params.get("name")
                 tool_args = params.get("arguments", {})
                 try:
-                    tool_output = handle_tool_call(tool_name, tool_args)
+                    # Redirect stdout to stderr during tool execution to protect JSON-RPC channel
+                    import contextlib
+                    with contextlib.redirect_stdout(sys.stderr):
+                        tool_output = handle_tool_call(tool_name, tool_args)
+
                     res = {
                         "jsonrpc": "2.0",
                         "id": req_id,
