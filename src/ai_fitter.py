@@ -222,7 +222,7 @@ def generate_consultation(
     - Under 350 words.
     """
 
-    if provider == "CLAUDE":
+    if provider == "CLAUDE" and api_key:
         try:
             import anthropic
             client = anthropic.Anthropic(api_key=api_key)
@@ -246,15 +246,5 @@ def generate_consultation(
                 return message.content[0].text.strip()
             except Exception as e2:
                 return f"Anthropic Claude API Notice: {str(e2)}\n\n" + generate_rule_based_breakdown(angles, targets, rider_profile)
-
-    elif provider == "GEMINI":
-        try:
-            import google.generativeai as genai
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel('gemini-2.0-flash-exp')
-            response = model.generate_content(prompt)
-            return response.text.strip()
-        except Exception as e:
-            return f"Google Gemini API Notice: {str(e)}\n\n" + generate_rule_based_breakdown(angles, targets, rider_profile)
 
     return generate_rule_based_breakdown(angles, targets, rider_profile)

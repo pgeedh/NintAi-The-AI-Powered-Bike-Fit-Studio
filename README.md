@@ -4,6 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-black.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![MediaPipe](https://img.shields.io/badge/MediaPipe-BlazePose%2033KP-0A84FF.svg?style=flat-square)](https://developers.google.com/mediapipe)
+[![Claude MCP](https://img.shields.io/badge/Claude-MCP%20Ready-BF5AF2.svg?style=flat-square)](docs/MCP_GUIDE.md)
 [![Studio Interface](https://img.shields.io/badge/Studio-Apple%20HIG%20Dark-30D158.svg?style=flat-square)](http://localhost:8080)
 
 Open-BikeFit is an open-source dynamic bike fitting studio. It transforms standard 30/60 FPS trainer video into multi-revolution biomechanical joint angle telemetry, 4-phase pedal stroke breakdowns, and millimeter hardware adjustment reports.
@@ -28,7 +29,7 @@ they need to re-verify their joint angles. Waiting weeks and paying hundreds of 
 ### The Mechanic and Car Analogy
 > Taking your car to a certified master mechanic provides reassurance and expertise for complex overhauls. However, understanding how your vehicle functions and having access to diagnostic tools allows you to maintain, tune, and iterate on your machine at home with precision.
 
-Getting an in-person professional fit from an experienced fitter is valuable, particularly when managing physical asymmetries or rehabilitation. Open-BikeFit serves as an open-source, high-precision computer vision baseline tool that empowers every cyclist to calculate their kinematic angles and test physical millimeter wrench adjustments rapidly at home.
+Getting an in-person professional fit from an experienced fitter is valuable, particularly when managing physical asymmetries or rehabilitation. Open-BikeFit serves as an open-source, high-precision computer vision baseline tool that empowers every cyclist to calculate their kinematic angles and test physical millimeter wrench adjustments rapidly at home with zero external API fees.
 
 > [!NOTE]
 > **Kinematic Baseline Notice:** Open-BikeFit is a geometric kinematic posture estimation tool designed to assist riders and bike fitters. It is not a medical device or physical therapy diagnostic service.
@@ -56,14 +57,14 @@ Open-BikeFit automatically identifies and extracts the four key phases of the dy
 ```
                                   OPEN-BIKEFIT STUDIO PIPELINE
   +------------------+     +---------------------+     +------------------------+
-  |  Rider Intake &  | --> |  Studio Setup &     | --> |  BlazePose 33-Landmark |
-  |  Profile Goal    |     |  Calibration Check  |     |  Sub-Pixel CV Engine   |
+  |  Rider Sign-Up & │ --> |  Studio Setup &     │ --> |  BlazePose 33-Landmark │
+  |  Intake Profile  │     |  Calibration Check  │     |  Sub-Pixel CV Engine   |
   +------------------+     +---------------------+     +------------------------+
                                                                    |
                                                                    v
   +------------------+     +---------------------+     +------------------------+
-  | Professional Fit | <-- |  Apple HIG Studio   | <-- |  1€ Adaptive Filter &  |
-  | Report & Wrench  |     |  Telemetry Gauges   |     |  Kinematic Math Solver |
+  | Claude Desktop   | <-- |  Apple HIG Studio   | <-- |  1€ Adaptive Filter &  |
+  | MCP Server & PDF │     |  Telemetry Gauges   |     |  Kinematic Math Solver │
   +------------------+     +---------------------+     +------------------------+
 ```
 
@@ -73,16 +74,17 @@ Open-BikeFit automatically identifies and extracts the four key phases of the dy
 - High-contrast telemetry cards with live target gauges and status indicators.
 
 ### 2. Multi-Step Onboarding Workflow (MyVeloFit Model)
-- **Step 1: Rider Intake & Account Profile:** Captures Name, Email, Height (cm), Inseam (cm), Bike Model, Discipline (Road, Gravel, TT/Triathlon, MTB), Flexibility level, and Specific Symptom/Pain Point Checklist.
+- **Step 1: Rider Sign-Up & Intake Profile:** Captures Name, Email, Height (cm), Inseam (cm), Bike Model, Discipline (Road, Gravel, TT/Triathlon, MTB), Flexibility level, and Specific Symptom/Pain Point Checklist. Supports saving and switching rider profiles locally or via Supabase.
 - **Step 2: Studio Setup & Calibration Guide:** 5-point checklist covering camera height (~70cm at crank axle level), distance (2.5 to 3.5m at 90 degrees), drive-side orientation, contrast attire, and trainer warm-up.
 - **Step 3: Video Input & Pre-Flight:** Drag-and-drop video upload or 1-click loading of curated test datasets with pre-flight FPS and resolution inspection.
 - **Step 4: Kinematic Motion Capture:** MediaPipe BlazePose Heavy 33-landmark tracking with 1€ adaptive filtering and bone length constraint enforcement.
 - **Step 5: Biomechanical Telemetry Studio:** 6 metric cards with target range meters and status badges, side-by-side synchronized video playback, and 4-phase freeze-frame stills.
-- **Step 6: Studio Fit Report & Wrench Guide:** Multi-provider report generation engine (Claude 3.7 / 3.5, Gemini 2.0 Flash, or 100% Offline Rule Engine) + high-resolution PDF export + JSON fit profile.
+- **Step 6: Studio Fit Report & Claude MCP:** 100% local deterministic report generation with millimeter wrench adjustments, high-resolution PDF export, JSON fit profile, and Claude Desktop MCP connection configuration.
 
-### 3. Deterministic Kinematic Math and Guardrails
-- All joint angle mathematics and spatial tracking are computed locally via deterministic trigonometry.
-- External LLM API keys are used strictly for formatting and writing the narrative report and wrench instructions.
+### 3. Claude Model Context Protocol (MCP) Server
+- Zero API keys required inside the web studio.
+- Connects directly to **Claude Desktop** or **Claude Code** via standard stdio JSON-RPC.
+- Claude can analyze videos, inspect joint angles, recommend hardware adjustments, and compile PDF reports directly from chat.
 
 ---
 
@@ -125,8 +127,8 @@ $$\theta_{\text{hip}} = \arccos\left(\frac{(\mathbf{p}_{\text{shoulder}} - \math
 | **Hardware Required** | Optical LED Harness | Web Browser / Cam | iOS Device | **Any Computer (Linux/Mac/Win)** |
 | **Keypoint Density** | 8 LED Markers | 17 Keypoints | Manual Taps | **33 Heavy Landmarks (BlazePose)** |
 | **Foot Kinematics** | Heel Only | Basic Ankle | None | **Ankle, Heel & Toe (3D Vector)** |
-| **Studio Report Engine** | Proprietary PDF | Cloud Automated | Basic Overlay | **Claude 3.7 / Gemini / 100% Offline** |
-| **Privacy / Local Run** | Studio Only | Cloud Upload | Local Device | **100% Local Processing** |
+| **AI / Assistant Interface** | Proprietary PDF | Cloud Automated | Basic Overlay | **Claude Desktop Model Context Protocol (MCP)** |
+| **Privacy / Local Run** | Studio Only | Cloud Upload | Local Device | **100% Local Processing (Zero API Keys Needed)** |
 
 ---
 
@@ -155,17 +157,46 @@ Open `http://localhost:8080` in your web browser.
 
 ---
 
+## Claude Desktop MCP Integration
+
+Add the Open-BikeFit MCP server to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "open-bikefit": {
+      "command": "/path/to/Open-BikeFit/.venv/bin/python",
+      "args": [
+        "/path/to/Open-BikeFit/mcp_server.py"
+      ],
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}
+```
+
+See [docs/MCP_GUIDE.md](docs/MCP_GUIDE.md) for full configuration instructions and example prompts.
+
+---
+
 ## Repository Directory Structure
 
 ```
 Open-BikeFit/
 ├── app.py                     # Apple HIG Multi-Step Studio Web App
+├── style.css                  # Clean Apple HIG Dark Theme Stylesheet
+├── mcp_server.py              # Claude Model Context Protocol (MCP) Server
 ├── src/
 │   ├── tracker.py             # MediaPipe BlazePose Heavy 33-Landmark Tracker
 │   ├── kinematics.py          # Biomechanical Angle Formulations & 1€ Filter
-│   ├── ai_fitter.py           # Studio Report Engine (Claude / Gemini / Offline)
+│   ├── ai_fitter.py           # Studio Report Engine (Deterministic & Guarded)
 │   ├── pdf_generator.py       # High-Resolution PDF Studio Report Builder
+│   ├── db.py                  # Rider Profile Persistence & Supabase Sync Hook
 │   └── analyzer.py            # Video Motion Capture Pipeline CLI
+├── data/
+│   └── profiles.json          # Saved rider profiles database
 ├── inputs/
 │   ├── videos/                # Sample and uploaded trainer rides
 │   └── images/                # Reference test frames & geometry
@@ -174,7 +205,9 @@ Open-BikeFit/
 │   ├── snapshots/             # 4-Phase cycle stills (TDC, Power, BDC, Overall)
 │   └── reports/               # Compiled PDF fit reports
 ├── docs/
-│   └── images/                # Permanent documentation image assets
+│   ├── images/                # Documentation image assets
+│   ├── MCP_GUIDE.md           # Claude Desktop MCP setup guide
+│   └── LAUNCH_KIT.md          # Launch playbook
 ├── models/                    # Model tasks and checkpoints
 └── scripts/
     └── download_models.py     # Automated neural asset downloader

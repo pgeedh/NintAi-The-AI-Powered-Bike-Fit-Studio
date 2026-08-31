@@ -1,6 +1,7 @@
 """
 Open-BikeFit: The Open-Source Biomechanical Bike Fit Studio.
 Apple Human Interface Guidelines (HIG) Minimalist Architecture.
+Features Rider Accounts, Claude MCP integration, and Supabase cloud synchronization hooks.
 """
 
 import os
@@ -19,8 +20,9 @@ from src.kinematics import (
     draw_skeleton_and_angles,
     FIT_TARGETS
 )
-from src.ai_fitter import generate_consultation, generate_rule_based_breakdown
+from src.ai_fitter import generate_rule_based_breakdown
 from src.pdf_generator import build_clinical_pdf
+from src.db import load_all_profiles, save_rider_profile, get_active_profile, SUPABASE_URL
 
 # ---------------------------------------------------------
 # Page Configuration
@@ -47,31 +49,21 @@ load_custom_css("style.css")
 # Safe Session State Initialization
 # ---------------------------------------------------------
 if "rider_profile" not in st.session_state:
-    st.session_state.rider_profile = {
-        "name": "Alex Chen",
-        "email": "alex.chen@example.com",
-        "discipline": "ROAD",
-        "goal": "Balanced Performance (Standard studio benchmark)",
-        "height_cm": 178,
-        "inseam_cm": 83,
-        "flexibility": "Moderate (Standard)",
-        "pain_points": ["Front of Knee (Patella / Anterior)", "Lower Back Fatigue"],
-        "bike_brand": "Specialized Tarmac SL7"
-    }
+    st.session_state.rider_profile = get_active_profile()
 
-# Sanitize flexibility state to avoid slider ValueError
 FLEX_OPTIONS = ["Low (Tight)", "Moderate (Standard)", "High (Very Flexible)"]
-current_flex = st.session_state.rider_profile.get("flexibility", "Moderate (Standard)")
-if current_flex not in FLEX_OPTIONS:
-    if "low" in str(current_flex).lower():
-        st.session_state.rider_profile["flexibility"] = "Low (Tight)"
-    elif "high" in str(current_flex).lower() or "flex" in str(current_flex).lower():
-        st.session_state.rider_profile["flexibility"] = "High (Very Flexible)"
-    else:
-        st.session_state.rider_profile["flexibility"] = "Moderate (Standard)"
+
+# Normalize flexibility
+curr_f = str(st.session_state.rider_profile.get("flexibility", "Moderate (Standard)")).lower()
+if "low" in curr_f or "tight" in curr_f:
+    st.session_state.rider_profile["flexibility"] = "Low (Tight)"
+elif "high" in curr_f or "flex" in curr_f:
+    st.session_state.rider_profile["flexibility"] = "High (Very Flexible)"
+else:
+    st.session_state.rider_profile["flexibility"] = "Moderate (Standard)"
 
 if "active_step" not in st.session_state:
-    st.session_state.active_step = "1. Rider Intake"
+    st.session_state.active_step = "1. Rider Sign-Up"
 
 if "analysis_results" not in st.session_state:
     st.session_state.analysis_results = None
@@ -83,11 +75,14 @@ if "ai_report_text" not in st.session_state:
 # ---------------------------------------------------------
 # Top Navigation Bar & Header
 # ---------------------------------------------------------
-st.markdown("""
+cloud_status_badge = '<span class="badge-optimal">Cloud Sync Ready</span>' if SUPABASE_URL else '<span class="badge-warning">Local Storage Mode</span>'
+
+st.markdown(f"""
 <div class="apple-nav">
     <div class="apple-brand">
         <div class="apple-brand-title">Open-BikeFit</div>
         <div class="apple-brand-badge">Studio v2.5</div>
+        {cloud_status_badge}
     </div>
     <div style="font-size: 13px; color: #86868B;">
         Open-Source Biomechanical Baseline & Rapid Hardware Diagnostics
@@ -106,12 +101,12 @@ st.markdown("""
 # 6-Step MyVeloFit Navigation Stepper
 # ---------------------------------------------------------
 STEPS = [
-    "1. Rider Intake",
+    "1. Rider Sign-Up",
     "2. Setup Guide",
     "3. Video Input",
     "4. Kinematic Run",
     "5. Telemetry Studio",
-    "6. Studio Report"
+    "6. Studio Report & MCP"
 ]
 
 step_cols = st.columns(len(STEPS))
@@ -131,32 +126,41 @@ st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
 
 
 # =========================================================
-# STEP 1: RIDER INTAKE & PROFILE
+# STEP 1: RIDER SIGN-UP & ACCOUNT INTAKE
 # =========================================================
-if st.session_state.active_step == "1. Rider Intake":
+if st.session_state.active_step == "1. Rider Sign-Up":
     st.markdown("""
     <div class="apple-card">
-        <div class="card-title">Step 1 · Rider Profile & Fitting Goals</div>
+        <div class="card-title">Step 1 · Rider Account Sign-Up & Intake Profile</div>
         <div class="card-desc">
-            Enter your rider metrics and primary riding targets. Open-BikeFit uses these to calibrate acceptable joint kinematic envelopes and tailor hardware adjustments.
+            Create or load your rider profile. Your biomechanical metrics and discomfort symptoms will be saved and formatted for instant Claude MCP analysis.
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+    # Saved profile switcher
+    existing_profiles = load_all_profiles()
+    if len(existing_profiles) > 1:
+        prof_names = [f"{p.get('name', 'Rider')} ({p.get('discipline', 'ROAD')} - {p.get('bike_brand', 'Bike')})" for p in existing_profiles]
+        selected_prof_idx = st.selectbox("Load Existing Rider Profile", range(len(prof_names)), format_func=lambda x: prof_names[x])
+        if st.button("Switch to Selected Profile"):
+            st.session_state.rider_profile = existing_profiles[selected_prof_idx]
+            st.rerun()
 
     c1, c2 = st.columns([1, 1])
     
     with c1:
         st.markdown("#### Account & Biometric Dimensions")
-        name = st.text_input("Full Name", value=st.session_state.rider_profile["name"])
-        email = st.text_input("Email (for report archiving)", value=st.session_state.rider_profile["email"])
+        name = st.text_input("Full Name", value=st.session_state.rider_profile.get("name", "Alex Chen"))
+        email = st.text_input("Email (Account & Report Archive)", value=st.session_state.rider_profile.get("email", "alex.chen@example.com"))
         
         dim_col1, dim_col2 = st.columns(2)
         with dim_col1:
-            height = st.number_input("Rider Height (cm)", min_value=120, max_value=230, value=int(st.session_state.rider_profile["height_cm"]))
+            height = st.number_input("Rider Height (cm)", min_value=120, max_value=230, value=int(st.session_state.rider_profile.get("height_cm", 178)))
         with dim_col2:
-            inseam = st.number_input("Inseam Length (cm)", min_value=50, max_value=110, value=int(st.session_state.rider_profile["inseam_cm"]))
+            inseam = st.number_input("Inseam Length (cm)", min_value=50, max_value=110, value=int(st.session_state.rider_profile.get("inseam_cm", 83)))
             
-        bike_model = st.text_input("Current Bike / Model", value=st.session_state.rider_profile.get("bike_brand", "Road Bike"))
+        bike_model = st.text_input("Current Bike / Model", value=st.session_state.rider_profile.get("bike_brand", "Specialized Tarmac SL7"))
 
     with c2:
         st.markdown("#### Discipline & Fit Objective")
@@ -177,13 +181,13 @@ if st.session_state.active_step == "1. Rider Intake":
         curr_goal_idx = goal_options.index(current_goal) if current_goal in goal_options else 1
         goal = st.selectbox("Fit Priority Goal", goal_options, index=curr_goal_idx)
         
-        # Flexibility Slider with guaranteed safe index
+        # Flexibility Selector
         curr_flex = st.session_state.rider_profile.get("flexibility", "Moderate (Standard)")
         curr_flex_idx = FLEX_OPTIONS.index(curr_flex) if curr_flex in FLEX_OPTIONS else 1
-        flexibility = st.select_slider(
+        flexibility = st.selectbox(
             "Hamstring & Lower Back Flexibility",
             options=FLEX_OPTIONS,
-            value=FLEX_OPTIONS[curr_flex_idx]
+            index=curr_flex_idx
         )
 
         st.markdown("#### Discomfort / Symptoms to Address")
@@ -202,8 +206,9 @@ if st.session_state.active_step == "1. Rider Intake":
         )
 
     st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
-    if st.button("Save Profile & Continue to Setup Guide →", type="primary", use_container_width=True):
-        st.session_state.rider_profile = {
+    if st.button("Sign Up & Continue to Setup Guide →", type="primary", use_container_width=True):
+        saved_prof = save_rider_profile({
+            "id": st.session_state.rider_profile.get("id"),
             "name": name,
             "email": email,
             "discipline": selected_disc,
@@ -213,7 +218,8 @@ if st.session_state.active_step == "1. Rider Intake":
             "flexibility": flexibility,
             "pain_points": selected_pains,
             "bike_brand": bike_model
-        }
+        })
+        st.session_state.rider_profile = saved_prof
         st.session_state.active_step = "2. Setup Guide"
         st.rerun()
 
@@ -277,7 +283,7 @@ elif st.session_state.active_step == "2. Setup Guide":
     b_col1, b_col2 = st.columns(2)
     with b_col1:
         if st.button("← Back to Profile", use_container_width=True):
-            st.session_state.active_step = "1. Rider Intake"
+            st.session_state.active_step = "1. Rider Sign-Up"
             st.rerun()
     with b_col2:
         if st.button("Proceed to Video Input →", type="primary", use_container_width=True):
@@ -552,7 +558,7 @@ elif st.session_state.active_step == "5. Telemetry Studio":
         render_metric_card(m_cols2[1], "Shoulder / Reach Angle", stats['arm_avg'], targets['arm_avg'])
         render_metric_card(m_cols2[2], "Ankle Angle at BDC", stats['ankling_avg'], targets['ankling_bdc'])
 
-        # Side-by-Side Video & Motion Capture Playback
+        # Side-by-Side Video Playback
         st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
         st.markdown("#### Dynamic Motion Capture Playback")
         v_col1, v_col2 = st.columns(2)
@@ -589,15 +595,15 @@ elif st.session_state.active_step == "5. Telemetry Studio":
                 st.session_state.active_step = "4. Kinematic Run"
                 st.rerun()
         with b_col2:
-            if st.button("Generate Studio Fit Report →", type="primary", use_container_width=True):
-                st.session_state.active_step = "6. Studio Report"
+            if st.button("View Studio Report & MCP →", type="primary", use_container_width=True):
+                st.session_state.active_step = "6. Studio Report & MCP"
                 st.rerun()
 
 
 # =========================================================
-# STEP 6: STUDIO FIT REPORT & WRENCH ACTION PLAN
+# STEP 6: STUDIO FIT REPORT & CLAUDE MCP CONNECTOR
 # =========================================================
-elif st.session_state.active_step == "6. Studio Report":
+elif st.session_state.active_step == "6. Studio Report & MCP":
     stats = st.session_state.analysis_results
 
     if not stats:
@@ -612,9 +618,9 @@ elif st.session_state.active_step == "6. Studio Report":
 
         st.markdown("""
         <div class="apple-card">
-            <div class="card-title">Step 6 · Professional Studio Fit Report & Wrench Guide</div>
+            <div class="card-title">Step 6 · Professional Studio Fit Report & Claude MCP Connector</div>
             <div class="card-desc">
-                Generate a studio-grade bicycle fit report with millimeter hardware adjustments. The API key is used strictly for formatting and structuring the narrative report.
+                Your deterministic biomechanical report is generated locally with exact millimeter wrench adjustments. You can also connect Claude via MCP to analyze and iterate on your fit directly.
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -622,48 +628,36 @@ elif st.session_state.active_step == "6. Studio Report":
         r_col1, r_col2 = st.columns([1, 2])
 
         with r_col1:
-            st.markdown("#### Engine & Provider Settings")
-            provider = st.selectbox(
-                "Report Generation Engine",
-                ["OFFLINE", "CLAUDE", "GEMINI"],
-                format_func=lambda x: {
-                    "OFFLINE": "Local Studio Engine (100% Offline / Zero API Key)",
-                    "CLAUDE": "Anthropic Claude (Claude 3.7 / 3.5 Sonnet)",
-                    "GEMINI": "Google Gemini (Gemini 2.0 Flash)"
-                }[x]
-            )
+            st.markdown("#### Claude MCP Connection")
+            st.markdown("""
+            <div class="metric-box">
+                <div style="font-weight:600; color:#F5F5F7; margin-bottom:4px;">No API Key Required</div>
+                <div style="font-size:12.5px; color:#86868B; line-height:1.4; margin-bottom:8px;">
+                    Connect Open-BikeFit directly to your local Claude Desktop app using Model Context Protocol (MCP).
+                </div>
+                <div style="font-size:11.5px; color:#6E6E73;">
+                    Server: <code>mcp_server.py</code><br>
+                    Rider ID: <strong>{}</strong>
+                </div>
+            </div>
+            """.format(rider_prof.get("id", "rider-default")), unsafe_allow_html=True)
 
-            api_key = None
-            if provider == "CLAUDE":
-                api_key = st.text_input("Anthropic API Key", type="password", help="Used strictly to generate the formatted fit report. All angle tracking is local.")
-            elif provider == "GEMINI":
-                api_key = st.text_input("Google Gemini API Key", type="password", help="Used strictly to generate the formatted fit report. All angle tracking is local.")
+            mcp_config = {
+                "mcpServers": {
+                    "open-bikefit": {
+                        "command": os.path.abspath(".venv/bin/python"),
+                        "args": [os.path.abspath("mcp_server.py")],
+                        "env": {"PYTHONUNBUFFERED": "1"}
+                    }
+                }
+            }
 
-            if st.button("Generate / Refresh Report", type="primary", use_container_width=True):
-                with st.spinner("Generating studio fit report..."):
-                    report_md = generate_consultation(
-                        angles=stats,
-                        targets=targets,
-                        provider=provider,
-                        api_key=api_key,
-                        rider_profile=rider_prof
-                    )
-                    st.session_state.ai_report_text = report_md
-                    st.success("Report generated!")
+            st.caption("Claude Desktop Configuration (`claude_desktop_config.json`):")
+            st.code(json.dumps(mcp_config, indent=2), language="json")
 
-        with r_col2:
-            st.markdown("#### Studio Fit Dossier")
-            
-            if not st.session_state.ai_report_text:
-                st.session_state.ai_report_text = generate_rule_based_breakdown(stats, targets, rider_prof)
-
-            st.markdown(st.session_state.ai_report_text)
-
-            st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
-            
-            # PDF Generation
+            # PDF Compilation
             pdf_path = "outputs/reports/openbikefit_report.pdf"
-            if st.button("Compile PDF Studio Dossier", use_container_width=True):
+            if st.button("Compile High-Res PDF Dossier", type="primary", use_container_width=True):
                 build_clinical_pdf(
                     snap_tdc=stats['snap_tdc'],
                     snap_bdc=stats['snap_bdc'],
@@ -671,7 +665,7 @@ elif st.session_state.active_step == "6. Studio Report":
                     snap_overall=stats['snap_overall'],
                     stats=stats,
                     targets=targets,
-                    consultation_text=st.session_state.ai_report_text,
+                    consultation_text=st.session_state.ai_report_text or generate_rule_based_breakdown(stats, targets, rider_prof),
                     output_path=pdf_path,
                     rider_profile=rider_prof
                 )
@@ -702,3 +696,11 @@ elif st.session_state.active_step == "6. Studio Report":
                 mime="application/json",
                 use_container_width=True
             )
+
+        with r_col2:
+            st.markdown("#### Biomechanical Studio Dossier")
+            
+            if not st.session_state.ai_report_text:
+                st.session_state.ai_report_text = generate_rule_based_breakdown(stats, targets, rider_prof)
+
+            st.markdown(st.session_state.ai_report_text)
