@@ -269,7 +269,7 @@
             </div>
 
             <!-- Preview Image Canvas -->
-            <div class="relative rounded-xl overflow-hidden bg-black aspect-video flex items-center justify-center border border-slate-800">
+            <div class="relative rounded-2xl overflow-hidden bg-black aspect-video flex items-center justify-center border border-slate-800 image-outline">
               <img id="scrubberImg" class="w-full h-full object-contain" alt="Annotated Frame">
               <div id="scrubberPlaceholder" class="text-xs text-slate-500">Preview loading...</div>
             </div>
@@ -280,8 +280,8 @@
               
               <div class="flex items-center justify-between text-xs text-slate-400">
                 <div class="flex items-center gap-2">
-                  <button id="btnScrubPlay" class="w-7 h-7 rounded-full bg-slate-800 text-white flex items-center justify-center hover:bg-slate-700">
-                    <i data-lucide="play" id="playIcon" class="w-3.5 h-3.5 fill-current"></i>
+                  <button id="btnScrubPlay" class="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center hover:bg-slate-700 active:scale-95 transition-all">
+                    <i data-lucide="play" id="playIcon" class="w-4 h-4 fill-current icon-play-nudge"></i>
                   </button>
                   <button id="btnScrubPrev" class="w-7 h-7 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center hover:bg-slate-700">
                     <i data-lucide="chevron-left" class="w-4 h-4"></i>

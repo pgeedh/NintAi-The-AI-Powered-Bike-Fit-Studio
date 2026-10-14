@@ -540,9 +540,9 @@ function renderSnapshots(snapshots) {
     card.className = "rounded-xl overflow-hidden bg-slate-900 border border-slate-800 space-y-2 group";
 
     card.innerHTML = `
-      <div class="relative aspect-video bg-black flex items-center justify-center overflow-hidden">
+      <div class="relative aspect-video bg-black flex items-center justify-center overflow-hidden image-outline">
         <img src="${snap.data_url}" alt="${snap.title}" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300">
-        <span class="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-900/80 text-white backdrop-blur border border-white/10">
+        <span class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-900/80 text-white backdrop-blur border border-white/10">
           ${snap.title}
         </span>
       </div>
