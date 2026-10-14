@@ -2,26 +2,30 @@ import mediapipe as mp
 import cv2
 import numpy as np
 import os
+import time
 
 # New Tasks API
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
 class PoseDetectorMP:
-    def __init__(self, model_path='src/models/pose_landmarker_heavy.task', model_complexity=2):
+    def __init__(self, model_path='src/models/pose_landmarker_heavy.task', model_complexity=2, mode='video'):
         """
         Initializes MediaPipe Pose Landmarker (Tasks API).
+        mode: 'video' for frame sequences, 'image' for single photos.
         """
         # Ensure model exists
         if not os.path.exists(model_path):
             raise FileNotFoundError(f"Model not found at {model_path}. Please download it.")
 
         base_options = python.BaseOptions(model_asset_path=model_path)
+        self.mode = mode
+        running_mode = vision.RunningMode.IMAGE if mode == 'image' else vision.RunningMode.VIDEO
         
         # Video mode for consistent tracking
         options = vision.PoseLandmarkerOptions(
             base_options=base_options,
-            running_mode=vision.RunningMode.VIDEO,
+            running_mode=running_mode,
             num_poses=1,
             min_pose_detection_confidence=0.5,
             min_pose_presence_confidence=0.5,
@@ -30,19 +34,26 @@ class PoseDetectorMP:
         )
         self.landmarker = vision.PoseLandmarker.create_from_options(options)
 
+    def close(self):
+        try:
+            self.landmarker.close()
+        except Exception:
+            pass
+
     def predict(self, image, timestamp_ms=None):
         """
         Runs MP Pose. Image must be RGB.
         timestamp_ms: Required for VIDEO/LIVE_STREAM mode.
         """
-        if timestamp_ms is None:
-            # Fallback for single image usage if needed (re-init simpler?)
-            # But assume Video usage mostly.
-            timestamp_ms = int(time.time() * 1000)
-
         # Convert BGR to RGB and MediaPipe Image
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=image_rgb)
+
+        if self.mode == 'image':
+            return self.landmarker.detect(mp_image)
+
+        if timestamp_ms is None:
+            timestamp_ms = int(time.time() * 1000)
         
         # Process (detect_for_video)
         detection_result = self.landmarker.detect_for_video(mp_image, int(timestamp_ms))

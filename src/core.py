@@ -37,8 +37,33 @@ def calculate_angle(a, b, c):
     return angle
 
 def calculate_angle_horizontal(a, b):
-    v = np.array(b) - np.array(a)
-    return np.abs(np.degrees(np.arctan2(v[1], v[0])))
+    """Acute angle (0-90 deg) between segment a->b and the horizontal.
+
+    Folding into 0-90 makes the metric independent of which way the rider faces
+    (a left-facing rider would otherwise report ~140 deg instead of ~40 deg).
+    """
+    v = np.array(b, dtype=float) - np.array(a, dtype=float)
+    ang = np.abs(np.degrees(np.arctan2(v[1], v[0])))
+    return float(min(ang, 180.0 - ang))
+
+
+class LazyOneEuroFilter:
+    """OneEuroFilter that initialises on the first sample instead of (0, 0).
+
+    The original filter started from the origin, which dragged the first
+    ~second of landmarks towards the top-left corner of the frame.
+    """
+
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+        self.f = None
+
+    def __call__(self, t, x):
+        x = np.asarray(x, dtype=float)
+        if self.f is None:
+            self.f = OneEuroFilter(t0=t, x0=x, **self.kwargs)
+            return x
+        return self.f(t, x)
 
 def draw_angle_arc(image, p1, p2, p3, angle, color=(0, 255, 255), radius=30):
     if p1 == (0,0) or p2 == (0,0) or p3 == (0,0): return
@@ -86,7 +111,14 @@ def get_primary_landmarks(lm_dict, facing_side):
     l_count = sum(1 for k in left_keys if k in lm_dict)
     r_count = sum(1 for k in right_keys if k in lm_dict)
     
-    prefix = 'left_' if l_count >= r_count else 'right_'
+    # A rider facing image-left shows their LEFT side to the camera (and vice
+    # versa), so prefer the facing side whenever enough of it is visible.
+    if facing_side == 'left' and l_count >= 4:
+        prefix = 'left_'
+    elif facing_side == 'right' and r_count >= 4:
+        prefix = 'right_'
+    else:
+        prefix = 'left_' if l_count >= r_count else 'right_'
     
     unified = {}
     for k, v in lm_dict.items():
@@ -115,6 +147,10 @@ def analyze_posture(lm):
     if valid(lm.get('elbow')) and valid(lm.get('shoulder')) and valid(lm.get('hip')):
         angles['arm_torso'] = calculate_angle(lm['elbow'], lm['shoulder'], lm['hip'])
     else: angles['arm_torso'] = 0
+
+    if valid(lm.get('shoulder')) and valid(lm.get('elbow')) and valid(lm.get('wrist')):
+        angles['elbow'] = calculate_angle(lm['shoulder'], lm['elbow'], lm['wrist'])
+    else: angles['elbow'] = 0
     
     ear_pt = None
     if 'ear' in lm: ear_pt = lm['ear']

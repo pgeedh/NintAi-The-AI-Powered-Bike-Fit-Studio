@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NintAi Studio — AI-Powered Bike Fitting & Biomechanics</title>
+  
+  <!-- Tailwind CSS & Lucide Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="p-0 m-0">
+
+  <!-- Top Navigation Bar -->
+  <nav class="navbar">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/30">
+        <i data-lucide="activity" class="w-5 h-5 text-white"></i>
+      </div>
+      <div>
+        <div class="brand-badge">
+          <span>NintAi</span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-semibold border border-blue-500/30">STUDIO 2.0</span>
+        </div>
+        <p class="text-[11px] text-slate-400 font-medium">Kinematic Biomechanics & Fit Intelligence</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button id="btnOpenGuide" class="apple-btn btn-secondary text-xs sm:text-sm">
+        <i data-lucide="camera" class="w-4 h-4 text-cyan-400"></i>
+        <span>Camera Guide</span>
+      </button>
+
+      <button id="btnOpenSettings" class="apple-btn btn-secondary text-xs sm:text-sm">
+        <i data-lucide="key" class="w-4 h-4 text-purple-400"></i>
+        <span id="aiStatusPill">AI Coach Key</span>
+      </button>
+
+      <a href="https://github.com/pgeedh/NintAi-The-AI-Powered-Bike-Fit-Studio" target="_blank" class="apple-btn btn-secondary text-xs sm:text-sm hidden sm:inline-flex">
+        <i data-lucide="github" class="w-4 h-4"></i>
+        <span>GitHub</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+    <!-- Hero / Value Proposition -->
+    <section class="text-center max-w-3xl mx-auto space-y-4 pt-4 pb-2">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/60 text-xs font-semibold text-slate-300 shadow-inner">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>Dual SOTA Engines: RTMPose Halpe-26 & MediaPipe Heavy 33-pt</span>
+      </div>
+      
+      <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight">
+        Precision Bike Fitting. <br>
+        <span class="brand-gradient">Powered by Computer Vision & AI.</span>
+      </h1>
+      
+      <p class="text-slate-400 text-sm sm:text-base leading-relaxed">
+        Turn your smartphone video or photo into a professional 3D-grade biomechanical fitting report. 
+        Analyze real knee extension, hip angle, KOPS, and ankling geometry in seconds.
+      </p>
+    </section>
+
+    <!-- Quick-Try Onboarding Carousel -->
+    <section class="space-y-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
+          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-300">Quick-Try Samples (No upload required)</h2>
+        </div>
+        <span class="text-xs text-slate-400">Click any card to test immediately</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" id="sampleCardsContainer">
+        <!-- Sample Cards populated dynamically -->
+      </div>
+    </section>
+
+    <!-- Studio Workbench (Setup & Media Input) -->
+    <section id="workbenchCard" class="glass-panel p-6 sm:p-8 space-y-6">
+      
+      <!-- Stepper / Section Title -->
+      <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-sm border border-blue-500/30">1</div>
+          <div>
+            <h3 class="font-bold text-lg text-slate-100">Upload Video or Side-View Photo</h3>
+            <p class="text-xs text-slate-400">Side-on recording of you pedalling on a turbo trainer, rollers, or static position.</p>
+          </div>
+        </div>
+        <span id="activeSelectionTag" class="text-xs font-mono px-3 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">No media selected</span>
+      </div>
+
+      <!-- Drag & Drop Uploader -->
+      <div id="dropZone" class="border-2 border-dashed border-slate-700 hover:border-blue-500/60 rounded-2xl p-8 text-center cursor-pointer transition-all bg-slate-900/40 hover:bg-slate-900/70 group">
+        <input type="file" id="fileInput" accept="video/mp4,video/quicktime,video/x-m4v,image/jpeg,image/png,image/webp" class="hidden">
+        
+        <div class="max-w-md mx-auto space-y-3">
+          <div class="w-14 h-14 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+            <i data-lucide="upload-cloud" class="w-7 h-7"></i>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-slate-200">
+              <span class="text-blue-400 underline underline-offset-2">Choose a file</span> or drag and drop here
+            </p>
+            <p class="text-xs text-slate-400 mt-1">MP4, MOV, JPG, PNG, WEBP (10–30s of steady pedalling recommended)</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Riding Style -->
+      <div class="space-y-3 pt-2">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-sm border border-blue-500/30">2</div>
+          <div>
+            <h3 class="font-bold text-sm text-slate-200">Select Riding Discipline</h3>
+            <p class="text-xs text-slate-400">Target joint kinematics automatically adjust based on your cycling goals.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" id="profileSelector">
+          <!-- Profiles injected dynamically -->
+        </div>
+      </div>
+
+      <!-- Step 3: Biomechanical Parameters & Engine -->
+      <div class="pt-2">
+        <button id="toggleAdvancedBtn" class="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-1.5 font-medium transition-colors">
+          <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-blue-400"></i>
+          <span>Fine-Tune Calibration & Pose Engine</span>
+          <i data-lucide="chevron-down" id="advChevron" class="w-3.5 h-3.5 transition-transform"></i>
+        </button>
+
+        <div id="advancedPanel" class="hidden mt-4 p-4 rounded-xl bg-slate-900/60 border border-slate-800 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Tracking Pose Engine</label>
+            <select id="backendSelect" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500">
+              <option value="auto">Auto (RTMPose Halpe-26 if ready, else MediaPipe)</option>
+              <option value="rtmpose">RTMPose-m (Halpe-26 feet/toes)</option>
+              <option value="mediapipe">MediaPipe Pose Heavy (33 keypoints)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Crank Arm Length (mm)</label>
+            <input type="number" id="crankMmInput" value="172.5" step="2.5" min="150" max="185" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500">
+            <span class="text-[10px] text-slate-400">Used for millimetre circle scale fit</span>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Rider Height (cm) <span class="text-slate-400 font-normal">(optional)</span></label>
+            <input type="number" id="riderHeightInput" placeholder="e.g. 178" min="120" max="220" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500">
+            <span class="text-[10px] text-slate-400">Fallback scale via Winter anthropometry</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <div class="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-800">
+        <div class="flex items-center gap-2 text-xs text-slate-400">
+          <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+          <span>Processed locally. Your video stays on your machine.</span>
+        </div>
+
+        <button id="btnStartAnalysis" class="apple-btn btn-primary w-full sm:w-auto px-8 py-3.5 text-base shadow-xl">
+          <i data-lucide="play" class="w-5 h-5 fill-current"></i>
+          <span>Start Fit Analysis</span>
+        </button>
+      </div>
+
+    </section>
+
+    <!-- Animated Loading Motion State -->
+    <section id="loadingState" class="hidden glass-panel p-12 text-center space-y-6">
+      
+      <!-- Apple-style Concentric Ring Motion Graphic -->
+      <div class="ring-loader">
+        <svg viewBox="0 0 100 100" class="w-full h-full">
+          <defs>
+            <linearGradient id="loader-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#3b82f6" />
+              <stop offset="50%" stop-color="#8b5cf6" />
+              <stop offset="100%" stop-color="#06b6d4" />
+            </linearGradient>
+          </defs>
+          <circle cx="50" cy="50" r="42" class="ring-outer" />
+          <circle cx="50" cy="50" r="30" class="ring-inner" />
+        </svg>
+        <div class="pulse-dot"></div>
+      </div>
+
+      <div class="space-y-2">
+        <h3 id="loadingStageTitle" class="text-xl font-bold text-slate-100">Analyzing Biomechanics...</h3>
+        <p id="loadingStageSub" class="text-xs text-slate-400">Running high-fidelity 33-point pose estimation</p>
+      </div>
+
+      <!-- Progress Step Ticker -->
+      <div class="max-w-md mx-auto grid grid-cols-4 gap-2 pt-2 text-[11px] font-semibold text-slate-400">
+        <div id="stepTrack" class="p-2 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">1. Pose</div>
+        <div id="stepSmooth" class="p-2 rounded-lg bg-slate-800/60">2. Cycles</div>
+        <div id="stepKinematics" class="p-2 rounded-lg bg-slate-800/60">3. Kinematics</div>
+        <div id="stepAI" class="p-2 rounded-lg bg-slate-800/60">4. Report</div>
+      </div>
+    </section>
+
+    <!-- Studio Results View -->
+    <section id="resultsSection" class="hidden space-y-8">
+      
+      <!-- Top Scorecard & Telemetry Header -->
+      <div class="glass-panel p-6 sm:p-8 flex flex-col lg:flex-row items-center justify-between gap-6">
+        
+        <div class="flex items-center gap-6">
+          <!-- Circular Fit Score Gauge -->
+          <div class="relative w-28 h-28 flex-shrink-0">
+            <svg viewBox="0 0 100 100" class="w-full h-full transform -rotate-90">
+              <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="8" />
+              <circle id="scoreCircle" cx="50" cy="50" r="42" fill="none" stroke="#10b981" stroke-width="8" 
+                      stroke-dasharray="264" stroke-dashoffset="60" stroke-linecap="round" class="transition-all duration-1000 ease-out" />
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <span id="scoreValue" class="text-3xl font-extrabold tracking-tight">84</span>
+              <span class="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Fit Score</span>
+            </div>
+          </div>
+
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <h2 class="text-2xl font-bold text-slate-100">Fit Analysis Complete</h2>
+              <span id="fitVerdictBadge" class="badge badge-ok">Optimal</span>
+            </div>
+            <p id="fitProfileSub" class="text-xs text-slate-400">Discipline: Road Endurance · Engine: RTMPose Halpe-26</p>
+            
+            <!-- Quick Telemetry Pills -->
+            <div class="flex flex-wrap gap-2 pt-2 text-xs" id="telemetryPills">
+              <!-- Injected dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <button id="btnDownloadPDF" class="apple-btn btn-primary">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span>Export Pro PDF</span>
+          </button>
+          <button id="btnNewAnalysis" class="apple-btn btn-secondary">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            <span>Analyze Another</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Scrubber & Snapshots Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Column: Video Scrubber Player (7 cols) -->
+        <div class="lg:col-span-7 space-y-4">
+          <div class="glass-panel p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <i data-lucide="film" class="w-4 h-4 text-blue-400"></i>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-200">Interactive Frame Scrubber</h4>
+              </div>
+              <span id="scrubberTime" class="text-xs font-mono text-slate-400">0.00s</span>
+            </div>
+
+            <!-- Preview Image Canvas -->
+            <div class="relative rounded-xl overflow-hidden bg-black aspect-video flex items-center justify-center border border-slate-800">
+              <img id="scrubberImg" class="w-full h-full object-contain" alt="Annotated Frame">
+              <div id="scrubberPlaceholder" class="text-xs text-slate-500">Preview loading...</div>
+            </div>
+
+            <!-- Scrubber Controls -->
+            <div class="space-y-2 pt-2">
+              <input type="range" id="scrubberSlider" min="0" max="100" value="0" class="w-full">
+              
+              <div class="flex items-center justify-between text-xs text-slate-400">
+                <div class="flex items-center gap-2">
+                  <button id="btnScrubPlay" class="w-7 h-7 rounded-full bg-slate-800 text-white flex items-center justify-center hover:bg-slate-700">
+                    <i data-lucide="play" id="playIcon" class="w-3.5 h-3.5 fill-current"></i>
+                  </button>
+                  <button id="btnScrubPrev" class="w-7 h-7 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center hover:bg-slate-700">
+                    <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                  </button>
+                  <button id="btnScrubNext" class="w-7 h-7 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center hover:bg-slate-700">
+                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                  </button>
+                </div>
+                <span id="scrubberFrameCounter" class="font-mono text-[11px]">Frame 0 / 0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Capture Warnings (if any) -->
+          <div id="warningsCard" class="hidden p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs space-y-1">
+            <div class="flex items-center gap-2 font-bold text-amber-400">
+              <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+              <span>Recording Quality Notes</span>
+            </div>
+            <ul id="warningsList" class="list-disc list-inside space-y-0.5 text-amber-300/80"></ul>
+          </div>
+        </div>
+
+        <!-- Right Column: Kinematics Angles & Targets (5 cols) -->
+        <div class="lg:col-span-5 space-y-4">
+          <div class="glass-panel p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div class="flex items-center gap-2">
+                <i data-lucide="gauge" class="w-4 h-4 text-emerald-400"></i>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-200">Joint Kinematics vs Targets</h4>
+              </div>
+              <span class="text-[10px] uppercase font-bold text-slate-500">2D Sagittal</span>
+            </div>
+
+            <div id="metricsList" class="space-y-4">
+              <!-- Dynamically populated angle rows -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 4-Phase Snapshots Carousel -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i data-lucide="layers" class="w-4 h-4 text-purple-400"></i>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-200">Pedal Stroke Phase Snapshots</h4>
+          </div>
+          <span class="text-xs text-slate-400">Key biomechanical moments detected from pedal cycles</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="snapshotsGrid">
+          <!-- Snapshots injected dynamically -->
+        </div>
+      </div>
+
+      <!-- Actionable Adjustments & AI Coach Verdict -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left: Actionable Adjustments (7 cols) -->
+        <div class="lg:col-span-7 glass-panel p-6 sm:p-8 space-y-4">
+          <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
+            <i data-lucide="wrench" class="w-4 h-4 text-blue-400"></i>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-200">Recommended Adjustments (In Priority Order)</h4>
+          </div>
+
+          <div id="recommendationsList" class="space-y-3">
+            <!-- Recommendations injected dynamically -->
+          </div>
+        </div>
+
+        <!-- Right: AI Coach Verdict (5 cols) -->
+        <div class="lg:col-span-5 glass-panel p-6 sm:p-8 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div class="flex items-center gap-2">
+              <i data-lucide="bot" class="w-4 h-4 text-purple-400"></i>
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-200">AI Coach Biomechanical Verdict</h4>
+            </div>
+            <span id="coachSourceTag" class="text-[10px] uppercase font-bold text-slate-400 px-2 py-0.5 rounded bg-slate-800">OFFLINE COACH</span>
+          </div>
+
+          <div id="coachText" class="text-xs text-slate-300 leading-relaxed space-y-2 whitespace-pre-line">
+            <!-- AI coach text -->
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Camera Guide & Onboarding Modal -->
+  <div id="guideModal" class="modal-backdrop">
+    <div class="modal-card p-6 sm:p-8 space-y-5">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="camera" class="w-5 h-5 text-cyan-400"></i>
+          <h3 class="font-bold text-base text-slate-100">Camera Setup & Best Practices</h3>
+        </div>
+        <button id="btnCloseGuide" class="text-slate-400 hover:text-slate-200 text-xl font-bold">&times;</button>
+      </div>
+
+      <div class="space-y-4 text-xs text-slate-300 leading-relaxed">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 space-y-1">
+            <p class="font-semibold text-slate-100">📐 90° Perpendicular Angle</p>
+            <p class="text-slate-400">Place camera square to the bike frame. Both wheels should be equidistant from the lens.</p>
+          </div>
+
+          <div class="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 space-y-1">
+            <p class="font-semibold text-slate-100">📏 Bottom Bracket Height</p>
+            <p class="text-slate-400">Mount phone / tripod roughly level with your bike's bottom bracket or saddle line (~0.8m).</p>
+          </div>
+
+          <div class="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 space-y-1">
+            <p class="font-semibold text-slate-100">👕 High-Contrast Kit</p>
+            <p class="text-slate-400">Fitted cycling shorts and jersey ensure precise knee, hip, and ankle landmark detection.</p>
+          </div>
+
+          <div class="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 space-y-1">
+            <p class="font-semibold text-slate-100">⏱️ Steady 80–90 RPM</p>
+            <p class="text-slate-400">Record 10–25 seconds of continuous pedalling at moderate resistance on a trainer or rollers.</p>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-300">
+          <p class="font-bold">Pro Tip:</p>
+          <p>The system auto-locks onto whichever side of your body is closest to the camera (left or right). No manual marker placement required!</p>
+        </div>
+      </div>
+
+      <button id="btnGotItGuide" class="apple-btn btn-primary w-full py-2.5">Got It</button>
+    </div>
+  </div>
+
+  <!-- Settings & AI Key Modal -->
+  <div id="settingsModal" class="modal-backdrop">
+    <div class="modal-card p-6 sm:p-8 space-y-5">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="settings" class="w-5 h-5 text-purple-400"></i>
+          <h3 class="font-bold text-base text-slate-100">Settings & AI Authentication</h3>
+        </div>
+        <button id="btnCloseSettings" class="text-slate-400 hover:text-slate-200 text-xl font-bold">&times;</button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-200 mb-1">Google Gemini API Key</label>
+          <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 outline-none focus:border-purple-500 font-mono">
+          <p class="text-slate-400 text-[11px] mt-1">Get a free key from <a href="https://aistudio.google.com/" target="_blank" class="text-purple-400 underline">Google AI Studio</a>. Saved locally in your browser.</p>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-200 mb-1">Rider Name</label>
+          <input type="text" id="riderNameInput" placeholder="e.g. Alex" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 outline-none focus:border-purple-500">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-200 mb-1">Rider Notes / Injuries</label>
+          <textarea id="riderNotesInput" rows="2" placeholder="e.g. Anterior knee pain on long climbs, recent collarbone fracture..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 outline-none focus:border-purple-500"></textarea>
+          <p class="text-slate-400 text-[11px] mt-1">AI coach synthesizes these notes directly into the fit verdict.</p>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2">
+        <button id="btnSaveSettings" class="apple-btn btn-primary px-6 py-2">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="text-center py-8 text-xs text-slate-500 border-t border-slate-800/80 mt-12">
+    <p>Nintai (Japanese for Perseverance) · Created with love for the passion of Triathlon by Pruthvi</p>
+    <p class="text-[10px] text-slate-600 mt-1">2D Video biomechanics are dynamic estimates for reference only. Consult a clinical fitter for medical evaluations.</p>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,213 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" width="1200" height="760">
+  <defs>
+    <linearGradient id="bgGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0d14" />
+      <stop offset="50%" stop-color="#0e1320" />
+      <stop offset="100%" stop-color="#090b10" />
+    </linearGradient>
+    <radialGradient id="topGlow" cx="50%" cy="0%" r="50%">
+      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60a5fa" />
+      <stop offset="50%" stop-color="#a78bfa" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+    <filter id="glassShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#000000" flood-opacity="0.6" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="760" fill="url(#bgGlow)" />
+  <rect width="1200" height="400" fill="url(#topGlow)" />
+
+  <!-- Navigation Bar -->
+  <rect x="0" y="0" width="1200" height="64" fill="#0c101a" fill-opacity="0.8" stroke="#1f293d" stroke-width="1" />
+  
+  <g transform="translate(32, 16)">
+    <rect width="32" height="32" rx="8" fill="url(#brandGrad)" />
+    <path d="M 8 16 L 12 10 L 16 22 L 20 13 L 24 16" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+    <text x="42" y="22" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" font-size="18" font-weight="800" fill="#ffffff">NintAi <tspan fill="#3b82f6" font-size="12" font-weight="600">STUDIO 2.0</tspan></text>
+  </g>
+
+  <!-- Nav Action Badges -->
+  <g transform="translate(850, 18)">
+    <rect x="0" y="0" width="130" height="28" rx="14" fill="#1e293b" stroke="#334155" stroke-width="1" />
+    <text x="65" y="18" font-family="sans-serif" font-size="11" font-weight="600" fill="#94a3b8" text-anchor="middle">📷 Camera Guide</text>
+
+    <rect x="145" y="0" width="170" height="28" rx="14" fill="#1e293b" stroke="#8b5cf6" stroke-width="1" />
+    <circle cx="160" cy="14" r="4" fill="#10b981" />
+    <text x="235" y="18" font-family="sans-serif" font-size="11" font-weight="600" fill="#a78bfa" text-anchor="middle">⚡ Gemini AI Connected</text>
+  </g>
+
+  <!-- Scorecard Banner -->
+  <g transform="translate(48, 88)">
+    <rect width="1104" height="110" rx="18" fill="#121826" fill-opacity="0.75" stroke="#263147" stroke-width="1" filter="url(#glassShadow)" />
+    
+    <!-- Fit Score Gauge -->
+    <g transform="translate(24, 15)">
+      <circle cx="40" cy="40" r="34" fill="none" stroke="#1f293d" stroke-width="7" />
+      <circle cx="40" cy="40" r="34" fill="none" stroke="#10b981" stroke-width="7" stroke-dasharray="213" stroke-dashoffset="35" stroke-linecap="round" transform="rotate(-90 40 40)" />
+      <text x="40" y="44" font-family="sans-serif" font-size="22" font-weight="800" fill="#ffffff" text-anchor="middle">86</text>
+      <text x="40" y="56" font-family="sans-serif" font-size="8" font-weight="700" fill="#94a3b8" text-anchor="middle">FIT SCORE</text>
+    </g>
+
+    <g transform="translate(130, 32)">
+      <text x="0" y="0" font-family="sans-serif" font-size="20" font-weight="700" fill="#ffffff">Fit Analysis Complete</text>
+      <rect x="210" y="-16" width="90" height="22" rx="11" fill="#10b981" fill-opacity="0.15" stroke="#10b981" stroke-width="1" />
+      <text x="255" y="-1" font-family="sans-serif" font-size="11" font-weight="700" fill="#34d399" text-anchor="middle">OPTIMAL FIT</text>
+      <text x="0" y="24" font-family="sans-serif" font-size="12" fill="#94a3b8">Discipline: Road Endurance · Pose Engine: RTMPose-m Halpe-26 · 19 Pedal Cycles</text>
+    </g>
+
+    <g transform="translate(680, 24)">
+      <!-- Metric Pills -->
+      <rect x="0" y="0" width="120" height="34" rx="8" fill="#1c2438" stroke="#2e3d5b" stroke-width="1" />
+      <text x="60" y="15" font-family="sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">CADENCE</text>
+      <text x="60" y="29" font-family="sans-serif" font-size="13" font-weight="700" fill="#38bdf8" text-anchor="middle">90 RPM</text>
+
+      <rect x="130" y="0" width="120" height="34" rx="8" fill="#1c2438" stroke="#2e3d5b" stroke-width="1" />
+      <text x="190" y="15" font-family="sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">KOPS OFFSET</text>
+      <text x="190" y="29" font-family="sans-serif" font-size="13" font-weight="700" fill="#34d399" text-anchor="middle">+4 mm</text>
+
+      <rect x="260" y="0" width="140" height="34" rx="8" fill="#1c2438" stroke="#2e3d5b" stroke-width="1" />
+      <text x="330" y="15" font-family="sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">SADDLE ADJ</text>
+      <text x="330" y="29" font-family="sans-serif" font-size="13" font-weight="700" fill="#facc15" text-anchor="middle">Keep (Within 2mm)</text>
+    </g>
+  </g>
+
+  <!-- Left: Scrubber Player & Telemetry -->
+  <g transform="translate(48, 220)">
+    <rect width="660" height="500" rx="18" fill="#121826" fill-opacity="0.75" stroke="#263147" stroke-width="1" filter="url(#glassShadow)" />
+    
+    <text x="24" y="32" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff">DYNAMIC FRAME SCRUBBER &amp; SKELETON HUD</text>
+    <text x="636" y="32" font-family="sans-serif" font-size="12" font-weight="600" fill="#38bdf8" text-anchor="end">4.82s · Frame 74/204</text>
+
+    <!-- Simulated Video Frame -->
+    <g transform="translate(24, 48)">
+      <rect width="612" height="350" rx="12" fill="#050811" stroke="#1f293d" stroke-width="1" />
+      
+      <!-- Grid lines -->
+      <line x1="20" y1="280" x2="590" y2="280" stroke="#1e293b" stroke-dasharray="4" />
+      
+      <!-- Skeleton Drawing -->
+      <!-- Head / Ear -->
+      <circle cx="280" cy="110" r="7" fill="#ef4444" stroke="#ffffff" stroke-width="2" />
+      <line x1="280" y1="110" x2="310" y2="135" stroke="#22d3ee" stroke-width="4" stroke-linecap="round" />
+
+      <!-- Shoulder to Elbow to Wrist -->
+      <circle cx="310" cy="135" r="7" fill="#ef4444" stroke="#ffffff" stroke-width="2" />
+      <line x1="310" y1="135" x2="340" y2="190" stroke="#22d3ee" stroke-width="4" stroke-linecap="round" />
+      <circle cx="340" cy="190" r="7" fill="#ef4444" stroke="#ffffff" stroke-width="2" />
+      <line x1="340" y1="190" x2="400" y2="215" stroke="#22d3ee" stroke-width="4" stroke-linecap="round" />
+      <circle cx="400" cy="215" r="7" fill="#ef4444" stroke="#ffffff" stroke-width="2" />
+
+      <!-- Shoulder to Hip -->
+      <line x1="310" y1="135" x2="220" y2="175" stroke="#22d3ee" stroke-width="4" stroke-linecap="round" />
+      <circle cx="220" cy="175" r="7" fill="#ef4444" stroke="#ffffff" stroke-width="2" />
+
+      <!-- Hip to Knee to Ankle -->
+      <line x1="220" y1="175" x2="285" y2="250" stroke="#22d3ee" stroke-width="4" stroke-linecap="round" />
+      <circle cx="285" cy="250" r="7" fill="#ef4444" stroke="#ffffff" stroke-width="2" />
+      <line x1="285" y1="250" x2="265" y2="330" stroke="#22d3ee" stroke-width="4" stroke-linecap="round" />
+      <circle cx="265" cy="330" r="7" fill="#ef4444" stroke="#ffffff" stroke-width="2" />
+
+      <!-- Foot Triangle (Ankle - Heel - Toe) -->
+      <polygon points="265,330 250,340 295,348" fill="#eab308" fill-opacity="0.35" stroke="#eab308" stroke-width="2" />
+      
+      <!-- Joint Angle HUD Pills on Frame -->
+      <g transform="translate(295, 240)">
+        <rect x="0" y="0" width="55" height="20" rx="4" fill="#000000" fill-opacity="0.8" stroke="#10b981" stroke-width="1" />
+        <text x="27" y="14" font-family="sans-serif" font-size="11" font-weight="700" fill="#10b981" text-anchor="middle">146°</text>
+      </g>
+      <g transform="translate(195, 155)">
+        <rect x="0" y="0" width="50" height="20" rx="4" fill="#000000" fill-opacity="0.8" stroke="#38bdf8" stroke-width="1" />
+        <text x="25" y="14" font-family="sans-serif" font-size="11" font-weight="700" fill="#38bdf8" text-anchor="middle">51°</text>
+      </g>
+      <g transform="translate(345, 175)">
+        <rect x="0" y="0" width="50" height="20" rx="4" fill="#000000" fill-opacity="0.8" stroke="#f59e0b" stroke-width="1" />
+        <text x="25" y="14" font-family="sans-serif" font-size="11" font-weight="700" fill="#f59e0b" text-anchor="middle">156°</text>
+      </g>
+    </g>
+
+    <!-- Scrubber Slider -->
+    <g transform="translate(24, 420)">
+      <rect x="0" y="8" width="612" height="6" rx="3" fill="#1e293b" />
+      <rect x="0" y="8" width="230" height="6" rx="3" fill="#3b82f6" />
+      <circle cx="230" cy="11" r="9" fill="#ffffff" stroke="#3b82f6" stroke-width="2" />
+
+      <!-- Controls -->
+      <circle cx="24" cy="46" r="16" fill="#1e293b" />
+      <polygon points="21,40 31,46 21,52" fill="#ffffff" />
+      <text x="54" y="50" font-family="sans-serif" font-size="12" font-weight="600" fill="#94a3b8">Play / Pause · 0.5x Slow-Motion</text>
+      <text x="612" y="50" font-family="sans-serif" font-size="12" fill="#64748b" text-anchor="end">Knee Min: 68° · Knee Max: 146°</text>
+    </g>
+  </g>
+
+  <!-- Right: Kinematics Angles & AI Coach -->
+  <g transform="translate(732, 220)">
+    <rect width="420" height="500" rx="18" fill="#121826" fill-opacity="0.75" stroke="#263147" stroke-width="1" filter="url(#glassShadow)" />
+    
+    <text x="24" y="32" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff">JOINT KINEMATICS (DYNAMIC MEDIANS)</text>
+
+    <!-- Angle Row 1: Knee Extension -->
+    <g transform="translate(24, 52)">
+      <text x="0" y="14" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">Knee Extension (BDC)</text>
+      <text x="372" y="14" font-family="sans-serif" font-size="14" font-weight="800" fill="#10b981" text-anchor="end">146.0° <tspan font-size="10" font-weight="600" fill="#34d399">OPTIMAL</tspan></text>
+      <rect x="0" y="24" width="372" height="8" rx="4" fill="#1e293b" />
+      <rect x="140" y="24" width="100" height="8" rx="4" fill="#10b981" fill-opacity="0.3" stroke="#10b981" stroke-width="1" />
+      <circle cx="200" cy="28" r="6" fill="#10b981" stroke="#ffffff" stroke-width="2" />
+      <text x="0" y="44" font-family="sans-serif" font-size="9" fill="#64748b">120°</text>
+      <text x="190" y="44" font-family="sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">Target 140°–150°</text>
+      <text x="372" y="44" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="end">165°</text>
+    </g>
+
+    <!-- Angle Row 2: Hip Closed -->
+    <g transform="translate(24, 115)">
+      <text x="0" y="14" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">Closed Hip Angle (TDC)</text>
+      <text x="372" y="14" font-family="sans-serif" font-size="14" font-weight="800" fill="#10b981" text-anchor="end">51.2° <tspan font-size="10" font-weight="600" fill="#34d399">OPTIMAL</tspan></text>
+      <rect x="0" y="24" width="372" height="8" rx="4" fill="#1e293b" />
+      <rect x="120" y="24" width="90" height="8" rx="4" fill="#10b981" fill-opacity="0.3" stroke="#10b981" stroke-width="1" />
+      <circle cx="165" cy="28" r="6" fill="#10b981" stroke="#ffffff" stroke-width="2" />
+      <text x="0" y="44" font-family="sans-serif" font-size="9" fill="#64748b">30°</text>
+      <text x="165" y="44" font-family="sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">Target 45°–55°</text>
+      <text x="372" y="44" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="end">75°</text>
+    </g>
+
+    <!-- Angle Row 3: Torso Angle -->
+    <g transform="translate(24, 178)">
+      <text x="0" y="14" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">Torso Angle (vs Horiz)</text>
+      <text x="372" y="14" font-family="sans-serif" font-size="14" font-weight="800" fill="#10b981" text-anchor="end">46.5° <tspan font-size="10" font-weight="600" fill="#34d399">OPTIMAL</tspan></text>
+      <rect x="0" y="24" width="372" height="8" rx="4" fill="#1e293b" />
+      <rect x="130" y="24" width="110" height="8" rx="4" fill="#10b981" fill-opacity="0.3" stroke="#10b981" stroke-width="1" />
+      <circle cx="185" cy="28" r="6" fill="#10b981" stroke="#ffffff" stroke-width="2" />
+      <text x="0" y="44" font-family="sans-serif" font-size="9" fill="#64748b">20°</text>
+      <text x="185" y="44" font-family="sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">Target 45°–55°</text>
+      <text x="372" y="44" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="end">70°</text>
+    </g>
+
+    <!-- Angle Row 4: Shoulder -->
+    <g transform="translate(24, 241)">
+      <text x="0" y="14" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">Shoulder Reach Angle</text>
+      <text x="372" y="14" font-family="sans-serif" font-size="14" font-weight="800" fill="#f59e0b" text-anchor="end">78.0° <tspan font-size="10" font-weight="600" fill="#fbbf24">BORDERLINE</tspan></text>
+      <rect x="0" y="24" width="372" height="8" rx="4" fill="#1e293b" />
+      <rect x="150" y="24" width="90" height="8" rx="4" fill="#10b981" fill-opacity="0.3" stroke="#10b981" stroke-width="1" />
+      <circle cx="135" cy="28" r="6" fill="#f59e0b" stroke="#ffffff" stroke-width="2" />
+      <text x="0" y="44" font-family="sans-serif" font-size="9" fill="#64748b">60°</text>
+      <text x="195" y="44" font-family="sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">Target 80°–95°</text>
+      <text x="372" y="44" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="end">110°</text>
+    </g>
+
+    <!-- AI Coach Card Inside Panel -->
+    <g transform="translate(24, 315)">
+      <rect width="372" height="160" rx="12" fill="#171e2e" stroke="#2d3b55" stroke-width="1" />
+      <text x="14" y="24" font-family="sans-serif" font-size="11" font-weight="700" fill="#a78bfa">🤖 GEMINI 2.5 AI COACH VERDICT</text>
+      <text x="14" y="48" font-family="sans-serif" font-size="11" fill="#cbd5e1">"Knee extension at BDC is textbook (146°), preventing</text>
+      <text x="14" y="66" font-family="sans-serif" font-size="11" fill="#cbd5e1">patellar overload. Reach is slightly short (78° shoulder);</text>
+      <text x="14" y="84" font-family="sans-serif" font-size="11" fill="#cbd5e1">a 10mm longer stem will open the chest and relieve</text>
+      <text x="14" y="102" font-family="sans-serif" font-size="11" fill="#cbd5e1">cervical tension on longer endurance rides."</text>
+      <text x="14" y="136" font-family="sans-serif" font-size="9" font-style="italic" fill="#64748b">Created with love for the passion of Triathlon by Pruthvi</text>
+    </g>
+  </g>
+</svg>

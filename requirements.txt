@@ -1,11 +1,23 @@
-opencv-python
-mediapipe
-numpy
-pandas
-openpyxl
-ultralytics
-fpdf
-seaborn
-matplotlib
-google-generativeai
-python-dotenv
+# Computer Vision & Pose Tracking SOTA
+mediapipe>=0.10.14
+rtmlib>=0.0.15
+onnxruntime>=1.19.0
+opencv-python-headless>=4.10.0
+
+# Biomechanics & Kinematics Signal Processing
+numpy>=1.26.0
+scipy>=1.13.0
+pandas>=2.2.0
+
+# PDF Generation
+fpdf2>=2.8.0
+
+# AI Coach Intelligence
+google-genai>=1.0.0
+python-dotenv>=1.0.0
+
+# Web Application & Studio Server
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9
+requests>=2.31.0
