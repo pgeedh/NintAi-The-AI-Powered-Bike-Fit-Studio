@@ -89,6 +89,16 @@ def get_sample_media(folder: str, filename: str):
     return FileResponse(safe_path, media_type=media_type)
 
 
+@app.get("/api/demo")
+def get_demo_analysis():
+    cache_path = os.path.join(ROOT, "assets", "cache", "demo_testvideo2.json")
+    if os.path.exists(cache_path):
+        import json
+        with open(cache_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    raise HTTPException(status_code=404, detail="Demo cache not available")
+
+
 @app.post("/api/analyze")
 async def analyze_media(
     file: Optional[UploadFile] = File(None),
@@ -227,19 +237,40 @@ async def analyze_media(
 
 
 class PDFRequest(BaseModel):
-    result: dict
+    result: Optional[dict] = None
+    metrics: Optional[dict] = None
+    profile: Optional[str] = None
+    profile_name: Optional[str] = None
+    score: Optional[float] = None
+    statuses: Optional[dict] = None
+    recommendations: Optional[list] = None
+    warnings: Optional[list] = None
+    biomech: Optional[dict] = None
+    backend_name: Optional[str] = None
     rider_name: Optional[str] = "Cyclist"
     coach_text: Optional[str] = None
 
 
 @app.post("/api/generate_pdf")
+@app.post("/api/report/pdf")
 def generate_pdf_endpoint(req: PDFRequest):
     """Generate high-resolution fpdf2 PDF report from analysis results."""
     try:
+        res_dict = req.result if req.result else {
+            "metrics": req.metrics or {},
+            "profile": req.profile or "road_endurance",
+            "profile_name": req.profile_name or "Road Endurance",
+            "score": req.score or 80.0,
+            "statuses": req.statuses or {},
+            "recommendations": req.recommendations or [],
+            "warnings": req.warnings or [],
+            "biomech": req.biomech or {},
+            "backend_name": req.backend_name or "RTMPose",
+        }
         temp_dir = tempfile.mkdtemp(prefix="nintai_pdf_")
         snap_paths = {}
 
-        for k, snap in req.result.get("snapshots", {}).items():
+        for k, snap in res_dict.get("snapshots", {}).items():
             data_url = snap.get("data_url", "")
             if data_url.startswith("data:image/"):
                 header, encoded = data_url.split(",", 1)
@@ -250,7 +281,7 @@ def generate_pdf_endpoint(req: PDFRequest):
                 snap_paths[k] = p
 
         pdf_bytes = report.generate_fit_report(
-            req.result,
+            res_dict,
             snap_paths,
             coach_text=req.coach_text,
             rider_name=req.rider_name or "",

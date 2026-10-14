@@ -1,6 +1,6 @@
 /**
  * NintAi Studio — Precision Motion Biomechanics Studio Logic
- * Adheres to UI Skills & Design Engineering Standards
+ * Built according to https://www.ui-skills.com/agents/antigravity
  */
 
 const state = {
@@ -23,12 +23,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   loadSettings();
   setupUIEvents();
   setupKeyboardShortcuts();
+  
+  // 1. Load config
   await loadConfig();
 
-  // Instant gratification: Auto-run initial analysis on default sample so the user lands on an active studio
-  setTimeout(() => {
-    executeFitAnalysis(true);
-  }, 300);
+  // 2. Instant Zero-Latency Demo Hydration from /api/demo
+  await loadInstantDemo();
 });
 
 function showToast(message, icon = "info") {
@@ -36,7 +36,7 @@ function showToast(message, icon = "info") {
   if (!container) return;
 
   const toast = document.createElement("div");
-  toast.className = "toast";
+  toast.className = "toast-pill";
   toast.innerHTML = `
     <i data-lucide="${icon}" class="w-4 h-4 text-blue-400 flex-shrink-0"></i>
     <span>${message}</span>
@@ -74,11 +74,21 @@ async function loadConfig() {
     const res = await fetch("/api/config");
     if (!res.ok) throw new Error("Failed to load studio configuration");
     state.config = await res.json();
-
     renderSampleList(state.config.samples || []);
   } catch (err) {
     console.error("Config load error:", err);
-    showToast("Failed to connect to NintAi backend engine", "alert-circle");
+  }
+}
+
+async function loadInstantDemo() {
+  try {
+    const res = await fetch("/api/demo");
+    if (!res.ok) return;
+    const data = await res.json();
+    state.result = data;
+    renderStudioResults(data);
+  } catch (err) {
+    console.error("Instant demo load error:", err);
   }
 }
 
@@ -87,7 +97,6 @@ function renderSampleList(samples) {
   if (!list) return;
   list.innerHTML = "";
 
-  // Priority display for standard test clips
   const priority = ["testvideo2.mp4", "testvideo.mp4", "1.jpg", "4.jpeg"];
   const sorted = [...samples].sort((a, b) => {
     const ai = priority.indexOf(a.id);
@@ -100,7 +109,7 @@ function renderSampleList(samples) {
     const isSelected = s.id === state.selectedSampleId && !state.uploadedFile;
     item.className = `p-2.5 rounded-lg border text-xs cursor-pointer flex items-center justify-between transition-colors ${
       isSelected
-        ? "bg-blue-950/40 border-blue-500/70 text-white font-medium"
+        ? "bg-blue-950/40 border-blue-500/70 text-white font-medium shadow-xs"
         : "bg-slate-900/60 border-slate-800 text-slate-300 hover:bg-slate-800/80"
     }`;
     item.dataset.id = s.id;
@@ -122,7 +131,11 @@ function renderSampleList(samples) {
       document.getElementById("activeSourceLabel").textContent = `${s.id} (${s.type})`;
       renderSampleList(samples);
       showToast(`Selected sample: ${s.id}`, "check");
-      executeFitAnalysis(false);
+      if (s.id === "testvideo2.mp4") {
+        loadInstantDemo();
+      } else {
+        executeFitAnalysis();
+      }
     });
 
     list.appendChild(item);
@@ -133,7 +146,7 @@ function renderSampleList(samples) {
 
 function setupUIEvents() {
   // Segmented discipline control
-  const segments = document.querySelectorAll("#profileSegmented .segment-item");
+  const segments = document.querySelectorAll("#profileSegmented .segment-btn");
   segments.forEach((seg) => {
     seg.addEventListener("click", () => {
       segments.forEach((s) => s.classList.remove("active"));
@@ -145,15 +158,17 @@ function setupUIEvents() {
         desc.textContent = state.config.profiles[state.profile].blurb;
       }
       showToast(`Profile: ${state.config?.profiles[state.profile]?.name || state.profile}`, "activity");
-      
-      // If we already have results, re-score instantly with new profile ranges!
+
+      // Re-score & update gauges immediately if results exist
       if (state.result) {
-        executeFitAnalysis(false);
+        state.result.profile = state.profile;
+        state.result.profile_name = state.config?.profiles[state.profile]?.name || state.profile;
+        renderKinematics(state.result);
       }
     });
   });
 
-  // Speed controls
+  // Playback speed
   const btn1x = document.getElementById("btnSpeed1x");
   const btn05x = document.getElementById("btnSpeed05x");
   btn1x?.addEventListener("click", () => {
@@ -175,7 +190,7 @@ function setupUIEvents() {
     }
   });
 
-  // Upload trigger
+  // File upload
   const btnBrowse = document.getElementById("btnBrowseCustom");
   const fileInput = document.getElementById("fileInput");
   btnBrowse?.addEventListener("click", () => fileInput?.click());
@@ -185,16 +200,16 @@ function setupUIEvents() {
       const f = e.target.files[0];
       state.uploadedFile = f;
       state.selectedSampleId = null;
-      document.getElementById("activeSourceLabel").textContent = `${f.name} (Custom Upload)`;
+      document.getElementById("activeSourceLabel").textContent = `${f.name} (Custom Ride)`;
       renderSampleList(state.config?.samples || []);
       showToast(`Uploaded ${f.name}. Click Analyze.`, "upload");
     }
   });
 
   // Run analysis button
-  document.getElementById("btnRunFit")?.addEventListener("click", () => executeFitAnalysis(false));
+  document.getElementById("btnRunFit")?.addEventListener("click", () => executeFitAnalysis());
 
-  // Timeline scrubber controls
+  // Timeline scrubber
   const slider = document.getElementById("scrubberSlider");
   slider?.addEventListener("input", (e) => {
     stopPlay();
@@ -231,13 +246,12 @@ function setupUIEvents() {
     localStorage.setItem(STORAGE_RIDER, name);
     loadSettings();
     settingsModal?.classList.remove("open");
-    showToast("Settings saved successfully", "check");
+    showToast("AI Coach settings saved", "check");
   });
 }
 
 function setupKeyboardShortcuts() {
   window.addEventListener("keydown", (e) => {
-    // Ignore keystrokes inside input / select
     if (["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement?.tagName)) {
       if (e.key === "Escape") {
         document.getElementById("settingsModal")?.classList.remove("open");
@@ -269,8 +283,7 @@ function setupKeyboardShortcuts() {
     } else if (e.key === "4") {
       selectDisciplineByIndex(3);
     } else if (e.key === "e" || e.key === "E") {
-      const btn = document.getElementById("btnDownloadPDF");
-      if (btn && !btn.disabled) exportPDF();
+      exportPDF();
     } else if (e.key === "?") {
       document.getElementById("guideModal")?.classList.toggle("open");
     } else if (e.key === "Escape") {
@@ -281,25 +294,20 @@ function setupKeyboardShortcuts() {
 }
 
 function selectDisciplineByIndex(index) {
-  const segments = document.querySelectorAll("#profileSegmented .segment-item");
-  if (segments[index]) {
-    segments[index].click();
-  }
+  const segments = document.querySelectorAll("#profileSegmented .segment-btn");
+  if (segments[index]) segments[index].click();
 }
 
-async function executeFitAnalysis(isSilentInit = false) {
+async function executeFitAnalysis() {
   const loading = document.getElementById("stageLoading");
   const placeholder = document.getElementById("stagePlaceholder");
-  const stageImg = document.getElementById("stageImg");
   const btnRun = document.getElementById("btnRunFit");
 
   loading?.classList.remove("hidden");
   placeholder?.classList.add("hidden");
   if (btnRun) btnRun.disabled = true;
 
-  if (!isSilentInit) {
-    showToast("Analyzing biomechanics with SOTA pose estimation...", "loader-2");
-  }
+  showToast("Running SOTA biomechanical analysis...", "loader-2");
 
   const formData = new FormData();
   if (state.uploadedFile) {
@@ -307,9 +315,8 @@ async function executeFitAnalysis(isSilentInit = false) {
   } else if (state.selectedSampleId) {
     formData.append("sample_id", state.selectedSampleId);
   } else {
-    showToast("Please select a sample or upload a video clip", "alert-circle");
+    showToast("Please select a sample or upload a video", "alert-circle");
     loading?.classList.add("hidden");
-    placeholder?.classList.remove("hidden");
     if (btnRun) btnRun.disabled = false;
     return;
   }
@@ -339,11 +346,10 @@ async function executeFitAnalysis(isSilentInit = false) {
     state.result = data;
 
     renderStudioResults(data);
-    showToast(`Biomechanics computed: Score ${data.score}/100`, "award");
+    showToast(`Analysis complete: Fit Score ${data.score}/100`, "award");
   } catch (err) {
     console.error("Analysis failure:", err);
     showToast(`Error: ${err.message}`, "alert-triangle");
-    placeholder?.classList.remove("hidden");
   } finally {
     loading?.classList.add("hidden");
     if (btnRun) btnRun.disabled = false;
@@ -351,32 +357,27 @@ async function executeFitAnalysis(isSilentInit = false) {
 }
 
 function renderStudioResults(data) {
-  // 1. Overall Fit Score & Pill
-  const scoreCard = document.getElementById("scoreSummaryCard");
+  // 1. Overall Score
   const scoreVal = document.getElementById("scoreValue");
   const statusPill = document.getElementById("fitStatusPill");
-  if (scoreCard && scoreVal && statusPill) {
-    scoreCard.classList.remove("hidden");
+  if (scoreVal && statusPill) {
     scoreVal.textContent = data.score !== null ? data.score : "--";
     if (data.score >= 80) {
       statusPill.textContent = "Optimal";
-      statusPill.className = "status-pill status-ok";
+      statusPill.className = "badge-pill badge-optimal";
       scoreVal.className = "text-2xl font-bold font-mono text-emerald-400";
-      scoreCard.className = "inspector-card space-y-3 border-l-4 border-l-emerald-500";
     } else if (data.score >= 60) {
       statusPill.textContent = "Borderline";
-      statusPill.className = "status-pill status-watch";
+      statusPill.className = "badge-pill badge-watch";
       scoreVal.className = "text-2xl font-bold font-mono text-amber-400";
-      scoreCard.className = "inspector-card space-y-3 border-l-4 border-l-amber-500";
     } else {
       statusPill.textContent = "Adjust";
-      statusPill.className = "status-pill status-fix";
+      statusPill.className = "badge-pill badge-adjust";
       scoreVal.className = "text-2xl font-bold font-mono text-rose-400";
-      scoreCard.className = "inspector-card space-y-3 border-l-4 border-l-rose-500";
     }
   }
 
-  // 2. HUD Chips & Dots
+  // 2. HUD Telemetry
   const m = data.metrics || {};
   const b = data.biomech || {};
   
@@ -417,20 +418,13 @@ function renderStudioResults(data) {
     if (stageImg) stageImg.src = data.snapshots.photo.data_url;
   }
 
-  // Enable Export PDF button
-  const btnPDF = document.getElementById("btnDownloadPDF");
-  if (btnPDF) {
-    btnPDF.disabled = false;
-    btnPDF.classList.remove("hidden");
-  }
-
-  // 4. Kinematics List
+  // 4. Bento Kinematics Grid
   renderKinematics(data);
 
   // 5. Prescriptions & Coach
   renderPrescriptions(data);
 
-  // 6. Phase Snapshots Strip
+  // 6. Snapshots
   renderSnapshotsStrip(data.snapshots || {});
 
   if (window.lucide) window.lucide.createIcons();
@@ -459,7 +453,6 @@ function renderScrubberFrame(idx) {
   const counter = document.getElementById("scrubberFrameCounter");
   if (counter) counter.textContent = `Frame ${idx + 1} / ${previews.length}`;
 
-  // Update dynamic phase indicator chip
   const phaseName = document.getElementById("hudPhaseName");
   if (phaseName && previews.length > 0) {
     const progress = idx / previews.length;
@@ -489,10 +482,7 @@ function startPlay() {
 
   state.isPlaying = true;
   const icon = document.getElementById("playIcon");
-  if (icon) {
-    icon.setAttribute("data-lucide", "pause");
-    icon.classList.remove("icon-play-nudge");
-  }
+  if (icon) icon.setAttribute("data-lucide", "pause");
   if (window.lucide) window.lucide.createIcons();
 
   const interval = (66 / state.playSpeed);
@@ -510,15 +500,12 @@ function stopPlay() {
     state.playTimer = null;
   }
   const icon = document.getElementById("playIcon");
-  if (icon) {
-    icon.setAttribute("data-lucide", "play");
-    icon.classList.add("icon-play-nudge");
-  }
+  if (icon) icon.setAttribute("data-lucide", "play");
   if (window.lucide) window.lucide.createIcons();
 }
 
 function renderKinematics(data) {
-  const container = document.getElementById("kinematicsList");
+  const container = document.getElementById("kinematicsGrid");
   if (!container) return;
   container.innerHTML = "";
 
@@ -530,13 +517,13 @@ function renderKinematics(data) {
     if (val === undefined || val === null || val <= 0) return;
 
     const range = ranges[key] || [0, 0];
-    const status = data.statuses[key] || "na";
+    const status = (val >= range[0] && val <= range[1]) ? "ok" : (Math.abs(val - range[0]) <= 3 || Math.abs(val - range[1]) <= 3) ? "watch" : "fix";
 
     const card = document.createElement("div");
-    card.className = "range-gauge-card space-y-1.5";
+    card.className = "bento-gauge-card flex flex-col justify-between";
 
-    const statusPillClass = status === "ok" ? "status-ok" : status === "watch" ? "status-watch" : "status-fix";
-    const statusText = status === "ok" ? "In Range" : status === "watch" ? "Watch" : "Adjust";
+    const badgeClass = status === "ok" ? "badge-optimal" : status === "watch" ? "badge-watch" : "badge-adjust";
+    const statusText = status === "ok" ? "Optimal" : status === "watch" ? "Watch" : "Adjust";
 
     const span = Math.max(range[1] - range[0], 20);
     const minBound = range[0] - span * 0.7;
@@ -547,27 +534,30 @@ function renderKinematics(data) {
     const widthPct = Math.min(100, ((range[1] - range[0]) / total) * 100);
     const dotPct = Math.min(100, Math.max(0, ((val - minBound) / total) * 100));
 
+    const diff = (val - (range[0] + range[1]) / 2).toFixed(1);
+    const diffSign = diff > 0 ? `+${diff}°` : `${diff}°`;
+
     card.innerHTML = `
-      <div class="flex items-center justify-between text-xs">
-        <div>
-          <span class="text-slate-200 font-semibold block">${meta.short || meta.label}</span>
-          <span class="text-[10px] text-slate-500">${meta.label}</span>
+      <div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-[450] text-slate-200">${meta.short || meta.label}</span>
+          <span class="badge-pill ${badgeClass}">${statusText}</span>
         </div>
-        <div class="flex items-center gap-2 font-mono">
-          <span class="font-bold text-white text-sm">${val.toFixed(1)}°</span>
-          <span class="status-pill ${statusPillClass}">${statusText}</span>
+        <div class="flex items-baseline justify-between mt-1">
+          <span class="text-xl font-bold font-mono text-white">${val.toFixed(1)}°</span>
+          <span class="text-[11px] font-mono text-slate-400">${diffSign}</span>
         </div>
       </div>
 
-      <div class="range-track">
-        <div class="range-zone" style="left: ${leftPct}%; width: ${widthPct}%;"></div>
-        <div class="range-dot" style="left: ${dotPct}%;"></div>
+      <div class="gauge-track">
+        <div class="gauge-sweet-spot" style="left: ${leftPct}%; width: ${widthPct}%;"></div>
+        <div class="gauge-pin" style="left: ${dotPct}%;"></div>
       </div>
 
-      <div class="flex justify-between text-[10px] text-slate-500 font-mono">
-        <span>Min: ${range[0]}°</span>
-        <span class="text-emerald-500/80">Target Band</span>
-        <span>Max: ${range[1]}°</span>
+      <div class="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
+        <span>${range[0]}°</span>
+        <span class="text-slate-400">Target Band</span>
+        <span>${range[1]}°</span>
       </div>
     `;
 
@@ -585,13 +575,13 @@ function renderPrescriptions(data) {
     container.innerHTML = `
       <div class="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs flex items-center gap-2">
         <i data-lucide="check-circle" class="w-4 h-4 flex-shrink-0"></i>
-        <span>All observed joint angles are in optimal alignment with ${data.profile_name} target specifications.</span>
+        <span>All observed kinematics match ${data.profile_name} specifications.</span>
       </div>
     `;
   } else {
     recs.forEach((r) => {
       const el = document.createElement("div");
-      el.className = "p-3 rounded-lg bg-slate-900 border border-slate-800 space-y-1";
+      el.className = "p-2.5 rounded-lg bg-slate-900 border border-slate-800 space-y-1";
       el.innerHTML = `
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
@@ -606,15 +596,13 @@ function renderPrescriptions(data) {
     });
   }
 
-  // Coach verdict narrative
   const coachBox = document.getElementById("coachBox");
   const coachTag = document.getElementById("coachTypeTag");
   if (coachBox && data.coach?.text) {
     coachBox.textContent = data.coach.text;
-    coachBox.classList.remove("hidden");
   }
   if (coachTag && data.coach?.source) {
-    coachTag.textContent = data.coach.source === "gemini" ? "Google Gemini 2.5 AI" : "Built-in Biomechanist";
+    coachTag.textContent = data.coach.source === "gemini" ? "Google Gemini 2.5" : "Built-in Biomechanist";
   }
 }
 
@@ -659,13 +647,14 @@ async function exportPDF() {
     return;
   }
 
-  showToast("Generating publication-quality PDF report...", "file-text");
+  showToast("Exporting PDF fit report...", "file-text");
 
   try {
     const resp = await fetch("/api/report/pdf", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        result: state.result,
         metrics: state.result.metrics,
         profile: state.profile,
         profile_name: state.result.profile_name,
@@ -693,7 +682,7 @@ async function exportPDF() {
     a.remove();
     window.URL.revokeObjectURL(url);
 
-    showToast("Fit Report PDF downloaded successfully!", "download");
+    showToast("PDF report downloaded", "download");
   } catch (err) {
     console.error("PDF export failure:", err);
     showToast(`PDF Error: ${err.message}`, "alert-triangle");
